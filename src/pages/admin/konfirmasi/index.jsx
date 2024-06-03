@@ -33,13 +33,18 @@ const columns = [
 const data = [
   {
     id: 1,
-    title: "Beetlejuice",
-    year: "1988",
+    title: "Konfirmasi 1",
+    year: "2020",
   },
   {
     id: 2,
-    title: "Ghostbusters",
-    year: "1984",
+    title: "Konfirmasi 2",
+    year: "2021",
+  },
+  {
+    id: 3,
+    title: "Konfirmasi 3",
+    year: "2022",
   },
 ];
 
