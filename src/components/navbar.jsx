@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { BiHome } from "react-icons/bi";
+import { TbReceipt } from "react-icons/tb";
+import { CgProfile } from "react-icons/cg";
 
 export default function Navbar() {
   const router = useRouter();
@@ -34,16 +37,7 @@ export default function Navbar() {
                       : "text-black"
                   }`}
                 >
-                  <Image
-                    src={
-                      router.pathname === "/beranda"
-                        ? "icon/beranda-active.svg"
-                        : "icon/beranda.svg"
-                    }
-                    alt="icon beranda"
-                    width={24}
-                    height={24}
-                  />
+                  <BiHome size={24} />
                   <p className="font-medium">Beranda</p>
                 </Link>
               </li>
@@ -56,27 +50,20 @@ export default function Navbar() {
                       : "text-black"
                   }`}
                 >
-                  <Image
-                    src={
-                      router.pathname === "/riwayat"
-                        ? "icon/riwayat-active.svg"
-                        : "icon/riwayat.svg"
-                    }
-                    alt="icon riwayat"
-                    width={24}
-                    height={24}
-                  />
+                  <TbReceipt size={24} />
                   <p className="font-medium">Riwayat</p>
                 </Link>
               </li>
               <li>
-                <Link href="#" className="flex gap-1 items-center">
-                  <Image
-                    src="icon/akun-saya.svg"
-                    alt="icon akun saya"
-                    width={24}
-                    height={24}
-                  />
+                <Link
+                  href="/akunsaya"
+                  className={`flex gap-1 items-center ${
+                    router.pathname === "/akunsaya"
+                      ? "text-orange-500"
+                      : "text-black"
+                  }`}
+                >
+                  <CgProfile size={24} />
                   <p className="font-medium">Akun Saya</p>
                 </Link>
               </li>

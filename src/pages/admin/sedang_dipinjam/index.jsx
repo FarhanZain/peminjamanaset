@@ -3,6 +3,7 @@ import Head from "next/head";
 import DataTable from "react-data-table-component";
 import { TbFileExport } from "react-icons/tb";
 import { IoSearch } from "react-icons/io5";
+import { useEffect, useState } from "react";
 
 export default function AdminSedangDipinjam() {
   const customStyles = {
@@ -55,7 +56,7 @@ export default function AdminSedangDipinjam() {
     },
     {
       name: "Alasan",
-      selector: (row) => row.alasan,
+      cell: (row) => <div style={{ padding: "8px 0" }}>{row.alasan}</div>,
       sortable: true,
       wrap: true,
       minWidth: "200px",
@@ -114,6 +115,12 @@ export default function AdminSedangDipinjam() {
     },
   ];
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <>
       <Head>
@@ -132,12 +139,14 @@ export default function AdminSedangDipinjam() {
           </button>
         </div>
         <div className="mt-4">
-          <DataTable
-            columns={columns}
-            data={data}
-            customStyles={customStyles}
-            pagination
-          />
+          {isMounted && (
+            <DataTable
+              columns={columns}
+              data={data}
+              customStyles={customStyles}
+              pagination
+            />
+          )}
         </div>
       </DefaultLayout>
     </>
