@@ -1,4 +1,5 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import Modal from "@/components/modal";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
@@ -71,13 +72,13 @@ export default function AdminDataAdmin() {
         <div className="flex gap-3">
           <button
             className="btn btn-outline btn-warning btn-sm"
-            onClick={() => handleActionSetuju(row.id)}
+            onClick={() => handleEditStatus(row)}
           >
             Edit
           </button>
           <button
             className="btn btn-outline btn-error btn-sm"
-            onClick={() => handleActionHapus(row.id)}
+            onClick={() => handleActionHapus(row)}
           >
             Hapus
           </button>
@@ -113,10 +114,10 @@ export default function AdminDataAdmin() {
     },
   ];
 
-  function handleActionHapus(id) {
+  function handleActionHapus(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menghapus admin ${id}`,
+      text: `ingin menghapus ${row.usernameAdmin}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -138,6 +139,73 @@ export default function AdminDataAdmin() {
     });
   }
 
+  // Add Karyawan
+
+  const [addAdmin, setAddAdmin] = useState(false);
+
+  const handleAddAdmin = () => {
+    setAddAdmin(true);
+  };
+
+  const handleCloseAddAdmin = () => {
+    setAddAdmin(false);
+  };
+
+  const handleSubmitAddAdmin = (event) => {
+    event.preventDefault();
+    Swal.fire({
+      title: "Berhasil",
+      text: "Data Admin berhasil ditambahkan.",
+      icon: "success",
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    setAddAdmin(false);
+  };
+
+  // Edit Status
+
+  const [editStatus, setEditStatus] = useState(null);
+  const [statusActive, setStatusActive] = useState(null);
+
+  const handleEditStatus = (row) => {
+    setEditStatus(row);
+    setStatusActive(row.statusAdmin == "Aktif");
+  };
+
+  const handleCloseEditStatus = () => {
+    setEditStatus(null);
+  };
+
+  const handleSubmitEditStatus = (event) => {
+    event.preventDefault();
+    Swal.fire({
+      title: "Apakah kamu yakin ?",
+      text: `ingin merubah status admin`,
+      icon: "warning",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonColor: "#FF5861",
+      cancelButtonColor: "#d9d9d9",
+      confirmButtonText: "Ya",
+      cancelButtonText: "Tidak",
+      allowOutsideClick: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Berhasil",
+          text: "Status sudah diperbarui.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setEditStatus(null);
+      }
+    });
+  };
+
+  // Mounted
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -157,7 +225,10 @@ export default function AdminDataAdmin() {
             <IoSearch />
           </label>
           <div className="grid grid-cols-1 gap-2">
-            <button className="btn bg-orange-500 text-white hover:bg-orange-600">
+            <button
+              className="btn bg-orange-500 text-white hover:bg-orange-600"
+              onClick={handleAddAdmin}
+            >
               <TiPlus size={24} />
               Admin
             </button>
@@ -174,6 +245,93 @@ export default function AdminDataAdmin() {
           )}
         </div>
       </DefaultLayout>
+
+      {/* Modal Add Admin */}
+      {addAdmin && (
+        <Modal title="Tambah Admin" onCloseModal={handleCloseAddAdmin}>
+          <form className="mt-4" action="" onSubmit={handleSubmitAddAdmin}>
+            {/* Nomor WA */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Nomor WA</span>
+              </div>
+              <input
+                type="number"
+                placeholder="Masukkan nomor wa"
+                className="input input-bordered w-full"
+                required
+              />
+            </label>
+            {/* Unit Admin */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Unit</span>
+              </div>
+              <select className="select select-bordered" required>
+                <option value="General">General</option>
+                <option value="Yayasan">Yayasan</option>
+                <option value="SMA">SMA</option>
+                <option value="SMP">SMP</option>
+                <option value="SD">SD</option>
+                <option value="TK">TK</option>
+              </select>
+            </label>
+            {/* Level Admin */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Level Admin</span>
+              </div>
+              <select className="select select-bordered" required>
+                <option value="Admin">Admin</option>
+                <option value="Superadmin">Superadmin</option>
+              </select>
+            </label>
+            {/* Submit */}
+            <div className="flex justify-between mt-8">
+              <button className="btn" onClick={handleCloseAddAdmin}>
+                Batal
+              </button>
+              <button
+                className="btn bg-orange-500 text-white hover:bg-orange-600"
+                type="submit"
+              >
+                Simpan
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Modal Edit Status Admin */}
+      {editStatus && (
+        <Modal title="Edit Status Admin" onCloseModal={handleCloseEditStatus}>
+          <form className="mt-8" action="" onSubmit={handleSubmitEditStatus}>
+            <div className="form-control">
+              <label className="cursor-pointer flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={statusActive}
+                  onChange={() => setStatusActive(!statusActive)}
+                  className="checkbox checkbox-success"
+                />
+                <p>Aktif</p>
+              </label>
+            </div>
+            {/* Submit */}
+            <div className="flex justify-between mt-8">
+              <button className="btn" onClick={handleCloseEditStatus}>
+                Batal
+              </button>
+              <button
+                className="btn bg-orange-500 text-white hover:bg-orange-600"
+                type="submit"
+              >
+                Simpan
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </>
   );
 }

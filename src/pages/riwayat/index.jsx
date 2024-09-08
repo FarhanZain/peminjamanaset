@@ -226,6 +226,7 @@ export default function PageRiwayat() {
                   type="file"
                   className="file-input file-input-bordered w-full"
                   required
+                  accept=".jpg, .jpeg, .png"
                 />
                 <p className="mt-2 text-error">
                   *Masukkan foto aset sesuai dengan tempat asalnya

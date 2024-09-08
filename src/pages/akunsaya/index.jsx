@@ -229,6 +229,7 @@ export default function PageAkunSaya() {
             <input
               type="file"
               className="file-input file-input-bordered w-full"
+              accept=".jpg, .jpeg, .png"
               required
             />
             <p className="mt-2 text-error">*Masukkan foto terbaru</p>
