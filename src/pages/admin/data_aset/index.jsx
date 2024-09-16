@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { TiPlus } from "react-icons/ti";
 import Modal from "@/components/modal";
 import { Scanner } from "@yudiel/react-qr-scanner";
+import { useRouter } from "next/router";
 
 export default function AdminDataAset() {
   const customStyles = {
@@ -215,8 +216,26 @@ export default function AdminDataAset() {
     setEditByForm(false);
   };
 
-  const [isMounted, setIsMounted] = useState(false);
+  // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
 
+      if (
+        res.status !== 200 ||
+        (data.role !== "admin" && data.role !== "superadmin")
+      ) {
+        data.role == "karyawan" ? router.push("/beranda") : router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // mounted
+  const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);

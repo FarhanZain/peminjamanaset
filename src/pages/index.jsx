@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import Head from "next/head";
@@ -9,9 +9,10 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [blankUsername, setBlankUsername] = useState("");
   const [blankPassword, setBlankPassword] = useState("");
+  const [loadingBtn, setLoadingBtn] = useState(false);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!username) {
       setBlankUsername("Silahkan masukkan username !");
     } else {
@@ -23,9 +24,64 @@ export default function Home() {
       setBlankPassword("");
     }
     if (username && password) {
-      router.push("/beranda");
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        setLoadingBtn(true);
+
+        const data = await res.json(); // Ambil body dari response API'
+
+        if (res.status === 200) {
+          if (data.data === "karyawan") {
+            router.push("/beranda");
+          } else if (data.data === "admin") {
+            router.push("/admin/konfirmasi");
+          } else if (data.data === "superadmin") {
+            router.push("/admin/konfirmasi");
+          }
+        } else if (res.status === 401) {
+          data.message == "Username Salah !"
+            ? setBlankUsername(data.message)
+            : setBlankPassword(data.message);
+
+          setLoadingBtn(false);
+        }
+      } catch (error) {
+        // console.error("Login error:", error);
+        Swal.fire({
+          title: "Login Gagal",
+          text: error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
     }
   };
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+
+      if (res.status === 200) {
+        // Arahkan berdasarkan role
+        if (data.role === "karyawan") {
+          router.push("/beranda");
+        } else if (data.role === "admin" || data.role === "superadmin") {
+          router.push("/admin/konfirmasi");
+        }
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   return (
     <>
@@ -90,12 +146,22 @@ export default function Home() {
               )}
             </label>
             {/* Submit */}
-            <button
-              type="submit"
-              className="btn w-full text-white bg-orange-500 hover:bg-orange-600"
-            >
-              Masuk
-            </button>
+            {loadingBtn ? (
+              <button
+                type="button"
+                className="btn w-full text-white bg-orange-500 hover:bg-orange-600"
+              >
+                <span className="loading loading-spinner"></span>
+                loading
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="btn w-full text-white bg-orange-500 hover:bg-orange-600"
+              >
+                Masuk
+              </button>
+            )}
           </form>
         </div>
       </div>

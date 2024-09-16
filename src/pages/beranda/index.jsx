@@ -8,6 +8,7 @@ import { MdNumbers } from "react-icons/md";
 import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import Swal from "sweetalert2";
+import { useRouter } from "next/router";
 
 export default function PageBeranda() {
   const [activeModalId, setActiveModalId] = useState(null);
@@ -49,6 +50,23 @@ export default function PageBeranda() {
       timer: 2000,
     });
   };
+
+  // akses page lain ketika belum login atau tidak login sebagai karyawan
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+
+      if (res.status !== 200 || data.role !== "karyawan") {
+        data.role == "admin" || data.role == "superadmin"
+          ? router.push("/admin/konfirmasi")
+          : router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   return (
     <>

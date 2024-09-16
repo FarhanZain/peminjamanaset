@@ -1,6 +1,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Modal from "@/components/modal";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoSearch } from "react-icons/io5";
@@ -9,6 +10,9 @@ import { TiPlus } from "react-icons/ti";
 import Swal from "sweetalert2";
 
 export default function AdminDataKaryawan() {
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
+
   const customStyles = {
     headCells: {
       style: {
@@ -27,29 +31,27 @@ export default function AdminDataKaryawan() {
   const columns = [
     {
       name: "Username",
-      selector: (row) => row.usernameKaryawan,
+      selector: (row) => row.username,
       sortable: true,
       minWidth: "150px",
     },
     {
       name: "Nama",
-      selector: (row) => row.namaKaryawan,
+      selector: (row) => row.nama_lengkap,
       sortable: true,
       wrap: true,
       minWidth: "150px",
     },
     {
       name: "Alamat",
-      cell: (row) => (
-        <div style={{ padding: "12px 0" }}>{row.alamatKaryawan}</div>
-      ),
+      cell: (row) => <div style={{ padding: "12px 0" }}>{row.alamat}</div>,
       sortable: true,
       wrap: true,
       minWidth: "350px",
     },
     {
       name: "No WA",
-      selector: (row) => row.nomorWaKaryawan,
+      selector: (row) => row.no_wa,
       sortable: true,
       minWidth: "150px",
     },
@@ -58,10 +60,10 @@ export default function AdminDataKaryawan() {
       cell: (row) => (
         <div
           className={`badge badge-outline ${
-            row.statusKaryawan == "Aktif" ? "badge-success" : "badge-error"
+            row.status == "Aktif" ? "badge-success" : "badge-error"
           }`}
         >
-          {row.statusKaryawan}
+          {row.status}
         </div>
       ),
       sortable: true,
@@ -90,40 +92,40 @@ export default function AdminDataKaryawan() {
     },
   ];
 
-  const data = [
-    {
-      id: 1,
-      usernameKaryawan: "karyawan1",
-      namaKaryawan: "Muhammad Shalahuddin Zain",
-      alamatKaryawan:
-        "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
-      nomorWaKaryawan: "081234567890",
-      statusKaryawan: "Aktif",
-    },
-    {
-      id: 2,
-      usernameKaryawan: "karyawan2",
-      namaKaryawan: "Farhan Abdurrahman Zain",
-      alamatKaryawan:
-        "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
-      nomorWaKaryawan: "081234567890",
-      statusKaryawan: "Aktif",
-    },
-    {
-      id: 3,
-      usernameKaryawan: "karyawan3",
-      namaKaryawan: "Fakhri Faturrahman Zain",
-      alamatKaryawan:
-        "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
-      nomorWaKaryawan: "081234567890",
-      statusKaryawan: "Tidak Aktif",
-    },
-  ];
+  // const data = [
+  //   {
+  //     id: 1,
+  //     usernameKaryawan: "karyawan1",
+  //     namaKaryawan: "Muhammad Shalahuddin Zain",
+  //     alamatKaryawan:
+  //       "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
+  //     nomorWaKaryawan: "081234567890",
+  //     statusKaryawan: "Aktif",
+  //   },
+  //   {
+  //     id: 2,
+  //     usernameKaryawan: "karyawan2",
+  //     namaKaryawan: "Farhan Abdurrahman Zain",
+  //     alamatKaryawan:
+  //       "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
+  //     nomorWaKaryawan: "081234567890",
+  //     statusKaryawan: "Aktif",
+  //   },
+  //   {
+  //     id: 3,
+  //     usernameKaryawan: "karyawan3",
+  //     namaKaryawan: "Fakhri Faturrahman Zain",
+  //     alamatKaryawan:
+  //       "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
+  //     nomorWaKaryawan: "081234567890",
+  //     statusKaryawan: "Tidak Aktif",
+  //   },
+  // ];
 
   function handleActionHapus(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menghapus ${row.usernameKaryawan}`,
+      text: `ingin menghapus ${row.username}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -200,7 +202,7 @@ export default function AdminDataKaryawan() {
 
   const handleEditStatus = (row) => {
     setEditStatus(row);
-    setStatusActive(row.statusKaryawan == "Aktif");
+    setStatusActive(row.status == "Aktif");
   };
 
   const handleCloseEditStatus = () => {
@@ -234,10 +236,41 @@ export default function AdminDataKaryawan() {
     });
   };
 
+  // Fetch data user
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/users")
+      .then((response) => response.json())
+      .then((data) => {
+        // Filter data untuk hanya menyertakan role admin dan superadmin
+        const filteredData = data.filter((user) => user.role === "karyawan");
+        setUsers(filteredData); // Menyimpan data ke state
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
+
+  // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+
+      if (
+        res.status !== 200 ||
+        (data.role !== "admin" && data.role !== "superadmin")
+      ) {
+        data.role == "karyawan" ? router.push("/beranda") : router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   // mounted
-
   const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -275,7 +308,7 @@ export default function AdminDataKaryawan() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={data}
+              data={users}
               customStyles={customStyles}
               pagination
             />

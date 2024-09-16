@@ -1,6 +1,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Modal from "@/components/modal";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { IoSearch } from "react-icons/io5";
@@ -8,6 +9,9 @@ import { TiPlus } from "react-icons/ti";
 import Swal from "sweetalert2";
 
 export default function AdminDataAdmin() {
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
+
   const customStyles = {
     headCells: {
       style: {
@@ -26,26 +30,26 @@ export default function AdminDataAdmin() {
   const columns = [
     {
       name: "Username",
-      selector: (row) => row.usernameAdmin,
+      selector: (row) => row.username,
       sortable: true,
       minWidth: "150px",
     },
     {
       name: "No WA",
-      selector: (row) => row.nomorWaAdmin,
+      selector: (row) => row.no_wa,
       sortable: true,
       minWidth: "150px",
     },
     {
       name: "Unit",
-      selector: (row) => row.unitAdmin,
+      selector: (row) => row.unit || "-",
       sortable: true,
       wrap: true,
       minWidth: "150px",
     },
     {
-      name: "Level",
-      selector: (row) => row.levelAdmin,
+      name: "Role",
+      selector: (row) => row.role,
       sortable: true,
       wrap: true,
       minWidth: "150px",
@@ -55,10 +59,10 @@ export default function AdminDataAdmin() {
       cell: (row) => (
         <div
           className={`badge badge-outline ${
-            row.statusAdmin == "Aktif" ? "badge-success" : "badge-error"
+            row.status == "Aktif" ? "badge-success" : "badge-error"
           }`}
         >
-          {row.statusAdmin}
+          {row.status}
         </div>
       ),
       sortable: true,
@@ -87,37 +91,56 @@ export default function AdminDataAdmin() {
     },
   ];
 
-  const data = [
-    {
-      id: 1,
-      usernameAdmin: "admin1",
-      nomorWaAdmin: "081234567890",
-      unitAdmin: "-",
-      levelAdmin: "Super Admin",
-      statusAdmin: "Aktif",
-    },
-    {
-      id: 2,
-      usernameAdmin: "admin2",
-      unitAdmin: "SD",
-      levelAdmin: "Admin",
-      nomorWaAdmin: "081234567890",
-      statusAdmin: "Aktif",
-    },
-    {
-      id: 3,
-      usernameAdmin: "admin3",
-      unitAdmin: "SMP",
-      levelAdmin: "Admin",
-      nomorWaAdmin: "081234567890",
-      statusAdmin: "Tidak Aktif",
-    },
-  ];
+  // const data = [
+  //   {
+  //     id: 1,
+  //     usernameAdmin: "admin1",
+  //     nomorWaAdmin: "081234567890",
+  //     unitAdmin: "-",
+  //     levelAdmin: "Super Admin",
+  //     statusAdmin: "Aktif",
+  //   },
+  //   {
+  //     id: 2,
+  //     usernameAdmin: "admin2",
+  //     unitAdmin: "SD",
+  //     levelAdmin: "Admin",
+  //     nomorWaAdmin: "081234567890",
+  //     statusAdmin: "Aktif",
+  //   },
+  //   {
+  //     id: 3,
+  //     usernameAdmin: "admin3",
+  //     unitAdmin: "SMP",
+  //     levelAdmin: "Admin",
+  //     nomorWaAdmin: "081234567890",
+  //     statusAdmin: "Tidak Aktif",
+  //   },
+  // ];
+
+  // fetch data user
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/users")
+      .then((response) => response.json())
+      .then((data) => {
+        // Filter data untuk hanya menyertakan role admin dan superadmin
+        const filteredData = data.filter(
+          (user) => user.role === "admin" || user.role === "superadmin"
+        );
+        setUsers(filteredData); // Menyimpan data ke state
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
+
+  // Hapus
 
   function handleActionHapus(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menghapus ${row.usernameAdmin}`,
+      text: `ingin menghapus ${row.username}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -170,7 +193,7 @@ export default function AdminDataAdmin() {
 
   const handleEditStatus = (row) => {
     setEditStatus(row);
-    setStatusActive(row.statusAdmin == "Aktif");
+    setStatusActive(row.status == "Aktif");
   };
 
   const handleCloseEditStatus = () => {
@@ -204,10 +227,26 @@ export default function AdminDataAdmin() {
     });
   };
 
+  // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+
+      if (
+        res.status !== 200 ||
+        (data.role !== "admin" && data.role !== "superadmin")
+      ) {
+        data.role == "karyawan" ? router.push("/beranda") : router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   // Mounted
-
   const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -238,7 +277,7 @@ export default function AdminDataAdmin() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={data}
+              data={users}
               customStyles={customStyles}
               pagination
             />

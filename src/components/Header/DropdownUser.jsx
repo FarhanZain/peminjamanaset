@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/router";
+import Swal from "sweetalert2";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const trigger = useRef(null);
   const dropdown = useRef(null);
+
+  const router = useRouter();
 
   // close on click outside
   useEffect(() => {
@@ -33,6 +37,25 @@ const DropdownUser = () => {
     document.addEventListener("keydown", keyHandler);
     return () => document.removeEventListener("keydown", keyHandler);
   });
+
+  const handleLogout = async () => {
+    Swal.fire({
+      title: "Apakah kamu ingin keluar ?",
+      icon: "warning",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonColor: "#FF5861",
+      cancelButtonColor: "#d9d9d9",
+      confirmButtonText: "Ya",
+      cancelButtonText: "Tidak",
+      allowOutsideClick: false,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch("/api/logout", { method: "POST" });
+        router.push("/");
+      }
+    });
+  };
 
   return (
     <div className="relative">
@@ -162,7 +185,10 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-orange-500 lg:text-base">
+        <button
+          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-orange-500 lg:text-base"
+          onClick={handleLogout}
+        >
           <svg
             className="fill-current"
             width="22"

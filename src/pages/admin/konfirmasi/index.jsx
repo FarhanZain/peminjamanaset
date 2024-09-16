@@ -4,6 +4,7 @@ import DataTable from "react-data-table-component";
 import Swal from "sweetalert2";
 import { IoSearch } from "react-icons/io5";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 export default function AdminKonfirmasi() {
   const customStyles = {
@@ -175,8 +176,26 @@ export default function AdminKonfirmasi() {
     });
   }
 
-  const [isMounted, setIsMounted] = useState(false);
+  // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
 
+      if (
+        res.status !== 200 ||
+        (data.role !== "admin" && data.role !== "superadmin")
+      ) {
+        data.role == "karyawan" ? router.push("/beranda") : router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // mounted
+  const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
