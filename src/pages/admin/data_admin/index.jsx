@@ -1,5 +1,6 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Modal from "@/components/modal";
+import ModalLoading from "@/components/modalLoading";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import Swal from "sweetalert2";
 export default function AdminDataAdmin() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [loadingModal, setLoadingModal] = useState(false);
 
   const customStyles = {
     headCells: {
@@ -32,12 +34,14 @@ export default function AdminDataAdmin() {
       name: "Username",
       selector: (row) => row.username,
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
       name: "No WA",
-      selector: (row) => row.no_wa,
+      selector: (row) => row.no_wa || "-",
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
@@ -66,6 +70,7 @@ export default function AdminDataAdmin() {
         </div>
       ),
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
@@ -91,115 +96,129 @@ export default function AdminDataAdmin() {
     },
   ];
 
-  // const data = [
-  //   {
-  //     id: 1,
-  //     usernameAdmin: "admin1",
-  //     nomorWaAdmin: "081234567890",
-  //     unitAdmin: "-",
-  //     levelAdmin: "Super Admin",
-  //     statusAdmin: "Aktif",
-  //   },
-  //   {
-  //     id: 2,
-  //     usernameAdmin: "admin2",
-  //     unitAdmin: "SD",
-  //     levelAdmin: "Admin",
-  //     nomorWaAdmin: "081234567890",
-  //     statusAdmin: "Aktif",
-  //   },
-  //   {
-  //     id: 3,
-  //     usernameAdmin: "admin3",
-  //     unitAdmin: "SMP",
-  //     levelAdmin: "Admin",
-  //     nomorWaAdmin: "081234567890",
-  //     statusAdmin: "Tidak Aktif",
-  //   },
-  // ];
-
-  // fetch data user
+  // Fetch Data Admin & Superadmin
   useEffect(() => {
-    // Fetch data dari API route
-    fetch("/api/users")
+    fetchData();
+  }, []);
+  const fetchData = () => {
+    fetch("/api/admin")
       .then((response) => response.json())
       .then((data) => {
-        // Filter data untuk hanya menyertakan role admin dan superadmin
-        const filteredData = data.filter(
-          (user) => user.role === "admin" || user.role === "superadmin"
-        );
-        setUsers(filteredData); // Menyimpan data ke state
+        setUsers(data);
       })
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  };
 
-  // Hapus
-
-  function handleActionHapus(row) {
-    Swal.fire({
-      title: "Apakah kamu yakin ?",
-      text: `ingin menghapus ${row.username}`,
-      icon: "warning",
-      showCancelButton: true,
-      reverseButtons: true,
-      confirmButtonColor: "#FF5861",
-      cancelButtonColor: "#d9d9d9",
-      confirmButtonText: "Hapus",
-      cancelButtonText: "Batal",
-      allowOutsideClick: false,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "Admin telah dihapus.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-      }
-    });
-  }
-
-  // Add Karyawan
-
+  // Tambah Admin & Superadmin
   const [addAdmin, setAddAdmin] = useState(false);
+  const [levelAdmin, setLevelAdmin] = useState("admin");
+  const [usernameAdmin, setUsernameAdmin] = useState("");
+  const [waAdmin, setWaAdmin] = useState("");
+  const [unitAdmin, setUnitAdmin] = useState("Yayasan");
+
+  useEffect(() => {
+    if (levelAdmin !== "admin") {
+      setWaAdmin(null);
+      setUnitAdmin(null);
+    }
+  }, [levelAdmin]);
 
   const handleAddAdmin = () => {
     setAddAdmin(true);
   };
-
   const handleCloseAddAdmin = () => {
     setAddAdmin(false);
+    setLevelAdmin("admin");
+    setUsernameAdmin("");
+    setWaAdmin("");
+    setUnitAdmin("");
   };
 
-  const handleSubmitAddAdmin = (event) => {
+  const handleSubmitAddAdmin = async (event) => {
     event.preventDefault();
-    Swal.fire({
-      title: "Berhasil",
-      text: "Data Admin berhasil ditambahkan.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
-    });
-    setAddAdmin(false);
+    setLoadingModal(true);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ levelAdmin, usernameAdmin, waAdmin, unitAdmin }),
+      });
+      const result = await res.json();
+      if (res.status == 201) {
+        Swal.fire({
+          title: "Berhasil",
+          text: result.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        fetchData();
+      } else if (res.status == 409) {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else if (res.status == 500) {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+      setAddAdmin(false);
+      setLoadingModal(false);
+      setLevelAdmin("admin");
+      setUsernameAdmin("");
+      setWaAdmin("");
+      setUnitAdmin("");
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 10000,
+      });
+      setAddAdmin(false);
+      setLoadingModal(false);
+    }
   };
 
-  // Edit Status
-
+  // Edit Status Admin & Superadmin
   const [editStatus, setEditStatus] = useState(null);
   const [statusActive, setStatusActive] = useState(null);
-
+  const [statusText, setStatusText] = useState("");
   const handleEditStatus = (row) => {
     setEditStatus(row);
-    setStatusActive(row.status == "Aktif");
+    if (row.status === "Aktif") {
+      setStatusActive(true);
+      setStatusText("Aktif");
+    } else if (row.status === "Tidak Aktif") {
+      setStatusActive(false);
+      setStatusText("Tidak Aktif");
+    }
   };
-
+  const handleChangeStatus = () => {
+    if (statusActive == true) {
+      setStatusActive(false);
+      setStatusText("Tidak Aktif");
+    } else if (statusActive == false) {
+      setStatusActive(true);
+      setStatusText("Aktif");
+    }
+  };
   const handleCloseEditStatus = () => {
     setEditStatus(null);
   };
-
   const handleSubmitEditStatus = (event) => {
     event.preventDefault();
     Swal.fire({
@@ -213,27 +232,120 @@ export default function AdminDataAdmin() {
       confirmButtonText: "Ya",
       cancelButtonText: "Tidak",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "Status sudah diperbarui.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        setEditStatus(null);
+        try {
+          setLoadingModal(true);
+          const res = await fetch("/api/admin", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              updatedId: editStatus.id,
+              updatedStatus: statusText,
+            }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+          } else if (res.status == 500) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+          }
+          setLoadingModal(false);
+          setEditStatus(null);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+          setEditStatus(null);
+        }
       }
     });
   };
 
-  // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
+  // Hapus Admin & Superadmin
+  const handleActionHapus = (row) => {
+    Swal.fire({
+      title: "Apakah kamu yakin ?",
+      text: `ingin menghapus ${row.username}`,
+      icon: "warning",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonColor: "#FF5861",
+      cancelButtonColor: "#d9d9d9",
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
+      allowOutsideClick: false,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setLoadingModal(true);
+          const res = await fetch("/api/admin", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ deletedId: row.id }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+          } else if (res.status == 500) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+        }
+      }
+    });
+  };
+
+  // akses page ketika belum login atau tidak login sebagai admin / superadmin
   const router = useRouter();
   useEffect(() => {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
-
       if (
         res.status !== 200 ||
         (data.role !== "admin" && data.role !== "superadmin")
@@ -241,9 +353,24 @@ export default function AdminDataAdmin() {
         data.role == "karyawan" ? router.push("/beranda") : router.push("/");
       }
     };
-
     checkAuth();
   }, [router]);
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filteredData = users.filter(
+        (user) =>
+          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (user.no_wa?.toString() || "").includes(searchTerm)
+      );
+      setFilteredUsers(filteredData);
+    } else {
+      setFilteredUsers(users); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+    }
+  }, [searchTerm, users]);
 
   // Mounted
   const [isMounted, setIsMounted] = useState(false);
@@ -260,7 +387,13 @@ export default function AdminDataAdmin() {
         <h1 className="text-xl font-semibold">Data Admin</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
           <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
-            <input type="text" className="grow" placeholder="Search" />
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <IoSearch />
           </label>
           <div className="grid grid-cols-1 gap-2">
@@ -277,7 +410,7 @@ export default function AdminDataAdmin() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={users}
+              data={filteredUsers}
               customStyles={customStyles}
               pagination
             />
@@ -289,42 +422,89 @@ export default function AdminDataAdmin() {
       {addAdmin && (
         <Modal title="Tambah Admin" onCloseModal={handleCloseAddAdmin}>
           <form className="mt-4" action="" onSubmit={handleSubmitAddAdmin}>
-            {/* Nomor WA */}
+            {/* Level Admin */}
+            <label className="form-control w-full mt-2">
+              <div className="flex flex-col">
+                <span className="label-text">Level</span>
+                <div className="flex gap-8 mt-2">
+                  <div className="form-control">
+                    <label className="label gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="radio-10"
+                        className="radio checked:bg-orange-500"
+                        defaultValue={"admin"}
+                        onChange={(e) => setLevelAdmin(e.target.value)}
+                        defaultChecked
+                      />
+                      <span className="label-text">Admin</span>
+                    </label>
+                  </div>
+                  <div className="form-control">
+                    <label className="label gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="radio-10"
+                        className="radio checked:bg-orange-500"
+                        defaultValue={"superadmin"}
+                        onChange={(e) => setLevelAdmin(e.target.value)}
+                      />
+                      <span className="label-text">Superadmin</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </label>
+            {/* Username */}
             <label className="form-control w-full mt-2">
               <div className="label">
-                <span className="label-text">Nomor WA</span>
+                <span className="label-text">Username</span>
               </div>
               <input
-                type="number"
-                placeholder="Masukkan nomor wa"
+                type="text"
+                placeholder="Masukkan username"
                 className="input input-bordered w-full"
+                defaultValue={usernameAdmin}
+                onChange={(e) => setUsernameAdmin(e.target.value)}
                 required
               />
             </label>
+            {/* Nomor WA */}
+            {levelAdmin == "admin" && (
+              <label className="form-control w-full mt-2">
+                <div className="label">
+                  <span className="label-text">Nomor WA</span>
+                </div>
+                <input
+                  type="number"
+                  placeholder="Masukkan nomor wa"
+                  className="input input-bordered w-full"
+                  defaultValue={waAdmin}
+                  onChange={(e) => setWaAdmin(e.target.value)}
+                  required
+                />
+              </label>
+            )}
             {/* Unit Admin */}
-            <label className="form-control w-full mt-2">
-              <div className="label">
-                <span className="label-text">Unit</span>
-              </div>
-              <select className="select select-bordered" required>
-                <option value="General">General</option>
-                <option value="Yayasan">Yayasan</option>
-                <option value="SMA">SMA</option>
-                <option value="SMP">SMP</option>
-                <option value="SD">SD</option>
-                <option value="TK">TK</option>
-              </select>
-            </label>
-            {/* Level Admin */}
-            <label className="form-control w-full mt-2">
-              <div className="label">
-                <span className="label-text">Level Admin</span>
-              </div>
-              <select className="select select-bordered" required>
-                <option value="Admin">Admin</option>
-                <option value="Superadmin">Superadmin</option>
-              </select>
-            </label>
+            {levelAdmin == "admin" && (
+              <label className="form-control w-full mt-2">
+                <div className="label">
+                  <span className="label-text">Unit</span>
+                </div>
+                <select
+                  className="select select-bordered"
+                  defaultValue={unitAdmin}
+                  onChange={(e) => setUnitAdmin(e.target.value)}
+                  required
+                >
+                  <option value="Yayasan">Yayasan</option>
+                  <option value="SMA">SMA</option>
+                  <option value="SMP">SMP</option>
+                  <option value="SD">SD</option>
+                  <option value="TK">TK</option>
+                </select>
+              </label>
+            )}
             {/* Submit */}
             <div className="flex justify-between mt-8">
               <button className="btn" onClick={handleCloseAddAdmin}>
@@ -350,7 +530,7 @@ export default function AdminDataAdmin() {
                 <input
                   type="checkbox"
                   checked={statusActive}
-                  onChange={() => setStatusActive(!statusActive)}
+                  onChange={handleChangeStatus}
                   className="checkbox checkbox-success"
                 />
                 <p>Aktif</p>
@@ -371,6 +551,9 @@ export default function AdminDataAdmin() {
           </form>
         </Modal>
       )}
+
+      {/* Modal Loading */}
+      {loadingModal && <ModalLoading />}
     </>
   );
 }

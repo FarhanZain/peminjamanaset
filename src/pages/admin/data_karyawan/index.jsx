@@ -1,5 +1,6 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Modal from "@/components/modal";
+import ModalLoading from "@/components/modalLoading";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import Swal from "sweetalert2";
 export default function AdminDataKaryawan() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [loadingModal, setLoadingModal] = useState(false);
 
   const customStyles = {
     headCells: {
@@ -33,6 +35,7 @@ export default function AdminDataKaryawan() {
       name: "Username",
       selector: (row) => row.username,
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
@@ -53,6 +56,7 @@ export default function AdminDataKaryawan() {
       name: "No WA",
       selector: (row) => row.no_wa,
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
@@ -67,6 +71,7 @@ export default function AdminDataKaryawan() {
         </div>
       ),
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
@@ -92,37 +97,23 @@ export default function AdminDataKaryawan() {
     },
   ];
 
-  // const data = [
-  //   {
-  //     id: 1,
-  //     usernameKaryawan: "karyawan1",
-  //     namaKaryawan: "Muhammad Shalahuddin Zain",
-  //     alamatKaryawan:
-  //       "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
-  //     nomorWaKaryawan: "081234567890",
-  //     statusKaryawan: "Aktif",
-  //   },
-  //   {
-  //     id: 2,
-  //     usernameKaryawan: "karyawan2",
-  //     namaKaryawan: "Farhan Abdurrahman Zain",
-  //     alamatKaryawan:
-  //       "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
-  //     nomorWaKaryawan: "081234567890",
-  //     statusKaryawan: "Aktif",
-  //   },
-  //   {
-  //     id: 3,
-  //     usernameKaryawan: "karyawan3",
-  //     namaKaryawan: "Fakhri Faturrahman Zain",
-  //     alamatKaryawan:
-  //       "Perumahan Mekarsari blok D no 100, Tiban lama, Sekupang, Batam",
-  //     nomorWaKaryawan: "081234567890",
-  //     statusKaryawan: "Tidak Aktif",
-  //   },
-  // ];
+  // Fetch Data Karyawan
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const fetchData = () => {
+    fetch("/api/karyawan")
+      .then((response) => response.json())
+      .then((data) => {
+        setUsers(data);
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
 
-  function handleActionHapus(row) {
+  // Hapus Data Karyawan
+  const handleActionHapus = (row) => {
     Swal.fire({
       title: "Apakah kamu yakin ?",
       text: `ingin menghapus ${row.username}`,
@@ -134,31 +125,59 @@ export default function AdminDataKaryawan() {
       confirmButtonText: "Hapus",
       cancelButtonText: "Batal",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "Karyawan telah dihapus.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
+        try {
+          setLoadingModal(true);
+          const res = await fetch("/api/karyawan", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ deletedId: row.id }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+          } else if (res.status == 500) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+        }
       }
     });
-  }
+  };
 
-  // Import File
-
+  // Import File Tambah Karyawan
   const [importKaryawan, setImportKaryawan] = useState(false);
-
   const handleImportKaryawan = () => {
     setImportKaryawan(true);
   };
-
   const handleCloseImportKaryawan = () => {
     setImportKaryawan(false);
   };
-
   const handleSubmitImportKaryawan = (event) => {
     event.preventDefault();
     Swal.fire({
@@ -171,49 +190,104 @@ export default function AdminDataKaryawan() {
     setImportKaryawan(false);
   };
 
-  // Add Karyawan
-
+  // Tambah Data Karyawan
   const [addKaryawan, setAddKaryawan] = useState(false);
-
+  const [namaKaryawan, setNamaKaryawan] = useState("");
+  const [alamatKaryawan, setAlamatKaryawan] = useState("");
+  const [waKaryawan, setWaKaryawan] = useState("");
   const handleAddKaryawan = () => {
     setAddKaryawan(true);
   };
-
   const handleCloseAddKaryawan = () => {
     setAddKaryawan(false);
   };
-
-  const handleSubmitAddKaryawan = (event) => {
+  const handleSubmitAddKaryawan = async (event) => {
     event.preventDefault();
-    Swal.fire({
-      title: "Berhasil",
-      text: "Data Karyawan berhasil ditambahkan.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
-    });
-    setAddKaryawan(false);
+    setLoadingModal(true);
+    try {
+      const res = await fetch("/api/karyawan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ namaKaryawan, alamatKaryawan, waKaryawan }),
+      });
+      const result = await res.json();
+      if (res.status == 201) {
+        Swal.fire({
+          title: "Berhasil",
+          text: result.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        fetchData();
+      } else if (res.status == 409) {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else if (res.status == 500) {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+      setAddKaryawan(false);
+      setLoadingModal(false);
+      // setUsernameAdmin("");
+      // setWaAdmin("");
+      // setUnitAdmin("");
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 10000,
+      });
+      setAddKaryawan(false);
+      setLoadingModal(false);
+    }
   };
 
-  // Edit Status
-
+  // Edit Status Karyawan
   const [editStatus, setEditStatus] = useState(null);
   const [statusActive, setStatusActive] = useState(null);
-
+  const [statusText, setStatusText] = useState("");
   const handleEditStatus = (row) => {
     setEditStatus(row);
-    setStatusActive(row.status == "Aktif");
+    if (row.status === "Aktif") {
+      setStatusActive(true);
+      setStatusText("Aktif");
+    } else if (row.status === "Tidak Aktif") {
+      setStatusActive(false);
+      setStatusText("Tidak Aktif");
+    }
   };
-
+  const handleChangeStatus = () => {
+    if (statusActive == true) {
+      setStatusActive(false);
+      setStatusText("Tidak Aktif");
+    } else if (statusActive == false) {
+      setStatusActive(true);
+      setStatusText("Aktif");
+    }
+  };
   const handleCloseEditStatus = () => {
     setEditStatus(null);
   };
-
   const handleSubmitEditStatus = (event) => {
     event.preventDefault();
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin merubah status karyawan`,
+      text: `ingin merubah status karayawan`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -222,34 +296,55 @@ export default function AdminDataKaryawan() {
       confirmButtonText: "Ya",
       cancelButtonText: "Tidak",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "Status sudah diperbarui.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        setEditStatus(null);
+        try {
+          setLoadingModal(true);
+          const res = await fetch("/api/karyawan", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              updatedId: editStatus.id,
+              updatedStatus: statusText,
+            }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+          } else if (res.status == 500) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+          }
+          setLoadingModal(false);
+          setEditStatus(null);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+          setEditStatus(null);
+        }
       }
     });
   };
-
-  // Fetch data user
-  useEffect(() => {
-    // Fetch data dari API route
-    fetch("/api/users")
-      .then((response) => response.json())
-      .then((data) => {
-        // Filter data untuk hanya menyertakan role admin dan superadmin
-        const filteredData = data.filter((user) => user.role === "karyawan");
-        setUsers(filteredData); // Menyimpan data ke state
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, []);
 
   // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
   const router = useRouter();
@@ -257,7 +352,6 @@ export default function AdminDataKaryawan() {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
-
       if (
         res.status !== 200 ||
         (data.role !== "admin" && data.role !== "superadmin")
@@ -265,9 +359,26 @@ export default function AdminDataKaryawan() {
         data.role == "karyawan" ? router.push("/beranda") : router.push("/");
       }
     };
-
     checkAuth();
   }, [router]);
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filteredData = users.filter(
+        (user) =>
+          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.alamat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.no_wa.toString().includes(searchTerm)
+      );
+      setFilteredUsers(filteredData);
+    } else {
+      setFilteredUsers(users); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+    }
+  }, [searchTerm, users]);
 
   // mounted
   const [isMounted, setIsMounted] = useState(false);
@@ -284,7 +395,13 @@ export default function AdminDataKaryawan() {
         <h1 className="text-xl font-semibold">Data Karyawan</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
           <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
-            <input type="text" className="grow" placeholder="Search" />
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <IoSearch />
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -308,7 +425,7 @@ export default function AdminDataKaryawan() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={users}
+              data={filteredUsers}
               customStyles={customStyles}
               pagination
             />
@@ -364,6 +481,8 @@ export default function AdminDataKaryawan() {
                 type="text"
                 placeholder="Masukkan nama lengkap"
                 className="input input-bordered w-full"
+                defaultValue={namaKaryawan}
+                onChange={(e) => setNamaKaryawan(e.target.value)}
                 required
               />
             </label>
@@ -375,6 +494,8 @@ export default function AdminDataKaryawan() {
               <textarea
                 className="textarea textarea-bordered"
                 placeholder="Masukkan Alamat"
+                defaultValue={alamatKaryawan}
+                onChange={(e) => setAlamatKaryawan(e.target.value)}
                 required
               ></textarea>
             </label>
@@ -387,6 +508,8 @@ export default function AdminDataKaryawan() {
                 type="number"
                 placeholder="Masukkan nomor wa"
                 className="input input-bordered w-full"
+                defaultValue={waKaryawan}
+                onChange={(e) => setWaKaryawan(e.target.value)}
                 required
               />
             </label>
@@ -418,7 +541,7 @@ export default function AdminDataKaryawan() {
                 <input
                   type="checkbox"
                   checked={statusActive}
-                  onChange={() => setStatusActive(!statusActive)}
+                  onChange={handleChangeStatus}
                   className="checkbox checkbox-success"
                 />
                 <p>Aktif</p>
@@ -439,6 +562,9 @@ export default function AdminDataKaryawan() {
           </form>
         </Modal>
       )}
+
+      {/* Modal Loading */}
+      {loadingModal && <ModalLoading />}
     </>
   );
 }

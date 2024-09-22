@@ -24,18 +24,20 @@ export default async function handler(req, res) {
                 return res.status(401).json({ message: 'Password Salah !' });
             }
 
-            // Buat token JWT
-            const token = jwt.sign({ id: user.id, role: user.role }, '!iniTokenRAHASIApeminjaman@set?', { expiresIn: '30d' });
+            if (user.status === "Aktif") {
+                // Buat token JWT
+                const token = jwt.sign({ id: user.id, role: user.role }, '!iniTokenRAHASIApeminjaman@set?', { expiresIn: '30d' });
+    
+                // Set cookie dengan token
+                res.setHeader('Set-Cookie', serialize('auth', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    maxAge: 30 * 24 * 60 * 60, // 30 hari
+                    path: '/'
+                }));
+            }
 
-            // Set cookie dengan token
-            res.setHeader('Set-Cookie', serialize('auth', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 30 * 24 * 60 * 60, // 30 hari
-                path: '/'
-            }));
-
-            return res.status(200).json({ message: 'Login successful',data: user.role });
+            return res.status(200).json({ message: 'Login successful',data: {role: user.role, status: user.status} });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Something went wrong' });

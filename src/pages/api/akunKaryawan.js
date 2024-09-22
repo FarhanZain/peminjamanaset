@@ -4,7 +4,7 @@ import db from '../../lib/db';
 export default async function handler(req, res) {
     try {
         // Melakukan query ke database
-        const [rows] = await db.query('SELECT * FROM tbl_user');
+        const [rows] = await db.query('SELECT * FROM tbl_user WHERE role = "karyawan"');
         
         res.status(200).json(rows);  // Mengirim data ke client
     } catch (error) {

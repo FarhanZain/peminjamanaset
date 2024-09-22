@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Swal from "sweetalert2";
 
 export default function Home() {
   const router = useRouter();
@@ -38,12 +39,31 @@ export default function Home() {
         const data = await res.json(); // Ambil body dari response API'
 
         if (res.status === 200) {
-          if (data.data === "karyawan") {
+          if (data.data.role === "karyawan" && data.data.status === "Aktif") {
             router.push("/beranda");
-          } else if (data.data === "admin") {
+          } else if (
+            data.data.role === "admin" &&
+            data.data.status === "Aktif"
+          ) {
             router.push("/admin/konfirmasi");
-          } else if (data.data === "superadmin") {
+          } else if (
+            data.data.role === "superadmin" &&
+            data.data.status === "Aktif"
+          ) {
             router.push("/admin/konfirmasi");
+          }
+
+          if (data.data.status === "Tidak Aktif") {
+            setUsername("");
+            setPassword("");
+            setLoadingBtn(false);
+            Swal.fire({
+              title: "Login Gagal",
+              text: "Akun anda dinon-aktifkan",
+              icon: "error",
+              showConfirmButton: false,
+              timer: 5000,
+            });
           }
         } else if (res.status === 401) {
           data.message == "Username Salah !"
@@ -53,7 +73,6 @@ export default function Home() {
           setLoadingBtn(false);
         }
       } catch (error) {
-        // console.error("Login error:", error);
         Swal.fire({
           title: "Login Gagal",
           text: error,

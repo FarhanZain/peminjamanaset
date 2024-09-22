@@ -5,7 +5,8 @@ export default function CardRiwayat(props) {
     namaAset,
     unitAset,
     statusAset,
-    durasiPinjam,
+    tglMulai,
+    tglSelesai,
   } = props;
   return (
     <>
@@ -44,7 +45,9 @@ export default function CardRiwayat(props) {
             <img src="icon/gedung.svg" alt="icon" />
             <p className="text-sm">{unitAset}</p>
           </div>
-          <p className="text-sm text-gray-500">{durasiPinjam}</p>
+          <p className="text-sm text-gray-500">
+            {tglMulai} - {tglSelesai}
+          </p>
         </div>
       </div>
     </>

@@ -8,13 +8,14 @@ import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { useRouter } from "next/router";
+import { BsFolderX } from "react-icons/bs";
 
 export default function PageRiwayat() {
   const [activeModalId, setActiveModalId] = useState(null);
   const [modalKembalikan, setModalKembalikan] = useState(false);
 
-  const handleClickCard = (card) => {
-    setActiveModalId(card);
+  const handleClickCard = (aset) => {
+    setActiveModalId(aset);
   };
 
   const handleCloseModal = () => {
@@ -70,10 +71,12 @@ export default function PageRiwayat() {
 
   // akses page lain ketika belum login atau tidak login sebagai karyawan
   const router = useRouter();
+  let tokenCookie;
   useEffect(() => {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
+      tokenCookie = data;
 
       if (res.status !== 200 || data.role !== "karyawan") {
         data.role == "admin" || data.role == "superadmin"
@@ -85,6 +88,37 @@ export default function PageRiwayat() {
     checkAuth();
   }, [router]);
 
+  // fetch data aset
+  const [asets, setAsets] = useState([]);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/riwayat")
+      .then((response) => response.json())
+      .then((data) => {
+        setAsets(data); // Menyimpan data ke state
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [filteredAsets, setFilteredAsets] = useState([]);
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filteredData = asets.filter(
+        (aset) =>
+          aset.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          aset.unit.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredAsets(filteredData);
+    } else {
+      setFilteredAsets(asets); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+    }
+  }, [searchTerm, asets]);
+
   return (
     <>
       <Head>
@@ -94,10 +128,16 @@ export default function PageRiwayat() {
       <div className="container px-6 mx-auto my-20 lg:my-24 lg:px-12">
         <div>
           {/* Filter */}
-          <div className="grid grid-cols-1 gap-3 mb-3 lg:grid-cols-3 lg:gap-4">
+          <div className="mb-3">
             {/* Input Search */}
             <label className="flex items-center w-full gap-2 rounded-xl input input-bordered lg:mb-4">
-              <input type="text" className="grow" placeholder="Cari" />
+              <input
+                type="text"
+                className="grow"
+                placeholder="Cari"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
@@ -111,66 +151,49 @@ export default function PageRiwayat() {
                 />
               </svg>
             </label>
-            {/* Filter Unit */}
-            <select className="w-full rounded-xl select select-bordered">
-              <option selected>Semua Unit</option>
-              <option>Unit Yayasan</option>
-              <option>Unit SMA</option>
-              <option>Unit SMP</option>
-              <option>Unit SD</option>
-              <option>Unit TK</option>
-            </select>
-            {/* Filter Status */}
-            <select className="w-full rounded-xl select select-bordered">
-              <option selected>Semua Status</option>
-              <option>Tersedia</option>
-              <option>Tidak Tersedia</option>
-            </select>
           </div>
 
           {/* Modal Detail Aset */}
           {activeModalId && (
             <Modal title="Detail" onCloseModal={handleCloseModal}>
               <img
-                src={activeModalId.fotoAset}
+                src={activeModalId.gambar}
                 alt="Foto Aset"
                 className="w-full h-[200px] lg:h-[300px] object-contain bg-gray-200 rounded-2xl my-3"
                 loading="lazy"
               />
-              <h3 className="text-xl font-bold mb-3">
-                {activeModalId.namaAset}
-              </h3>
+              <h3 className="text-xl font-bold mb-3">{activeModalId.nama}</h3>
               <div
                 className={`badge badge-outline mb-4 ${
-                  activeModalId.statusAset == "Menunggu Konfirmasi"
+                  activeModalId.status == "Menunggu Konfirmasi"
                     ? "badge-primary"
-                    : activeModalId.statusAset == "Sedang Dipinjam"
+                    : activeModalId.status == "Sedang Dipinjam"
                     ? "badge-info"
-                    : activeModalId.statusAset == "Jatuh Tempo"
+                    : activeModalId.status == "Jatuh Tempo"
                     ? "badge-secondary"
-                    : activeModalId.statusAset == "Selesai"
+                    : activeModalId.status == "Selesai"
                     ? "badge-success"
-                    : activeModalId.statusAset == "Dibatalkan"
+                    : activeModalId.status == "Dibatalkan"
                     ? "badge-error"
-                    : activeModalId.statusAset == "Ditolak"
+                    : activeModalId.status == "Ditolak"
                     ? "badge-error"
                     : "badge-neutral"
                 }`}
               >
-                {activeModalId.statusAset}
+                {activeModalId.status}
               </div>
               <div className="flex flex-wrap gap-4">
                 <div className="flex gap-1 items-center mb-3">
                   <MdNumbers className="text-orange-500" />
-                  <p className="text-sm">{activeModalId.nomorAset}</p>
+                  <p className="text-sm">{activeModalId.no_aset}</p>
                 </div>
                 <div className="flex gap-1 items-center mb-3">
                   <HiOutlineBuildingOffice2 className="text-orange-500" />
-                  <p className="text-sm">{activeModalId.unitAset}</p>
+                  <p className="text-sm">{activeModalId.unit}</p>
                 </div>
                 <div className="flex gap-1 items-center mb-3">
                   <HiOutlineLocationMarker className="text-orange-500" />
-                  <p className="text-sm">{activeModalId.lokasiAset}</p>
+                  <p className="text-sm">{activeModalId.lokasi}</p>
                 </div>
               </div>
               <div className="mt-2">
@@ -178,7 +201,7 @@ export default function PageRiwayat() {
                   Masa Pinjam
                 </p>
                 <p className="text-sm md:text-base mt-2">
-                  {activeModalId.masaPinjam}
+                  {activeModalId.tgl_mulai} - {activeModalId.tgl_selesai}
                 </p>
               </div>
               <div className="flex justify-between mt-2">
@@ -187,7 +210,9 @@ export default function PageRiwayat() {
                     Tanggal Pengajuan
                   </p>
                   <p className="text-sm md:text-base mt-2">
-                    {activeModalId.tanggalPengajuan}
+                    {activeModalId.tgl_pengajuan == null
+                      ? "-"
+                      : activeModalId.tgl_pengajuan}
                   </p>
                 </div>
                 <div className="mt-2">
@@ -195,11 +220,13 @@ export default function PageRiwayat() {
                     Tanggal Pengembalian
                   </p>
                   <p className="text-sm md:text-base mt-2">
-                    {activeModalId.tanggalPengembalian}
+                    {activeModalId.tgl_pengembalian == null
+                      ? "-"
+                      : activeModalId.tgl_pengembalian}
                   </p>
                 </div>
               </div>
-              {activeModalId.statusAset == "Menunggu Konfirmasi" ? (
+              {activeModalId.status == "Menunggu Konfirmasi" ? (
                 <button
                   type="button"
                   className="btn btn-outline w-full text-orange-500 border-orange-500 hover:bg-orange-600 hover:border-orange-500 mt-8"
@@ -207,7 +234,7 @@ export default function PageRiwayat() {
                 >
                   Batalkan
                 </button>
-              ) : activeModalId.statusAset == "Sedang Dipinjam" ? (
+              ) : activeModalId.status == "Sedang Dipinjam" ? (
                 <button
                   type="button"
                   className="btn btn-outline w-full text-white bg-orange-500 hover:bg-orange-600 mt-8"
@@ -215,7 +242,7 @@ export default function PageRiwayat() {
                 >
                   Kembalikan
                 </button>
-              ) : activeModalId.statusAset == "Jatuh Tempo" ? (
+              ) : activeModalId.status == "Jatuh Tempo" ? (
                 <button
                   type="button"
                   className="btn btn-outline w-full text-white bg-orange-500 hover:bg-orange-600 mt-8"
@@ -265,96 +292,29 @@ export default function PageRiwayat() {
           )}
 
           {/* Card Item Aset */}
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
-            {cards.map((card) => (
-              <CardRiwayat
-                key={card.id}
-                fotoAset={card.fotoAset}
-                namaAset={card.namaAset}
-                unitAset={card.unitAset}
-                statusAset={card.statusAset}
-                durasiPinjam={card.masaPinjam}
-                onCardClick={() => handleClickCard(card)}
-              ></CardRiwayat>
-            ))}
-          </div>
+          {filteredAsets.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
+              {filteredAsets.map((aset) => (
+                <CardRiwayat
+                  key={aset.id}
+                  fotoAset={aset.gambar}
+                  namaAset={aset.nama}
+                  unitAset={aset.unit}
+                  statusAset={aset.status}
+                  tglMulai={aset.tgl_mulai}
+                  tglSelesai={aset.tgl_selesai}
+                  onCardClick={() => handleClickCard(aset)}
+                ></CardRiwayat>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center mt-8">
+              <BsFolderX size={50} />
+              <p className="mt-2">Tidak ada riwayat peminjaman</p>
+            </div>
+          )}
         </div>
       </div>
     </>
   );
 }
-
-const cards = [
-  {
-    id: 1,
-    fotoAset: "/image/detailKamera.png",
-    statusAset: "Menunggu Konfirmasi",
-    namaAset: "Kamera Mirrorless 1",
-    unitAset: "Unit Yayasan",
-    nomorAset: "UA111111",
-    lokasiAset: "Kantor Yayasan",
-    masaPinjam: "04/09/2024 - 10/09/2024",
-    tanggalPengajuan: "04/09/2024",
-    tanggalPengembalian: "-",
-  },
-  {
-    id: 2,
-    fotoAset: "/image/detailKamera.png",
-    statusAset: "Sedang Dipinjam",
-    namaAset: "Kamera Mirrorless 2",
-    unitAset: "Unit SMA",
-    nomorAset: "UA222222",
-    lokasiAset: "Gedung 1 SMA",
-    masaPinjam: "05/09/2024 - 11/09/2024",
-    tanggalPengajuan: "05/09/2024",
-    tanggalPengembalian: "-",
-  },
-  {
-    id: 3,
-    fotoAset: "/image/detailKamera.png",
-    statusAset: "Jatuh Tempo",
-    namaAset: "Kamera Mirrorless 3",
-    unitAset: "Unit SMP",
-    nomorAset: "UA333333",
-    lokasiAset: "Gudang Gedung Bawah",
-    masaPinjam: "06/09/2024 - 12/09/2024",
-    tanggalPengajuan: "06/09/2024",
-    tanggalPengembalian: "-",
-  },
-  {
-    id: 4,
-    fotoAset: "/image/detailKamera.png",
-    statusAset: "Selesai",
-    namaAset: "Kamera Mirrorless 4",
-    unitAset: "Unit SD",
-    nomorAset: "UA444444",
-    lokasiAset: "Gudang Gedung 2",
-    masaPinjam: "07/09/2024 - 13/09/2024",
-    tanggalPengajuan: "07/09/2024",
-    tanggalPengembalian: "13/09/2024",
-  },
-  {
-    id: 5,
-    fotoAset: "/image/detailKamera.png",
-    statusAset: "Dibatalkan",
-    namaAset: "Kamera Mirrorless 5",
-    unitAset: "Unit TK",
-    nomorAset: "UA555555",
-    lokasiAset: "Ruangan Kelas Balok",
-    masaPinjam: "08/09/2024 - 14/09/2024",
-    tanggalPengajuan: "08/09/2024",
-    tanggalPengembalian: "-",
-  },
-  {
-    id: 6,
-    fotoAset: "/image/detailKamera.png",
-    statusAset: "Ditolak",
-    namaAset: "Kamera Mirrorless 6",
-    unitAset: "Unit TK",
-    nomorAset: "UA666666",
-    lokasiAset: "Ruangan Kelas Balok",
-    masaPinjam: "09/09/2024 - 15/09/2024",
-    tanggalPengajuan: "09/09/2024",
-    tanggalPengembalian: "-",
-  },
-];

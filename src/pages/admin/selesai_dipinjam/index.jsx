@@ -5,6 +5,7 @@ import { TbFileExport } from "react-icons/tb";
 import { IoSearch } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import * as XLSX from "xlsx";
 
 export default function AdminSelesaiDipinjam() {
   const customStyles = {
@@ -25,41 +26,46 @@ export default function AdminSelesaiDipinjam() {
   const columns = [
     {
       name: "Tgl Pengembalian",
-      selector: (row) => row.tglPengembalian,
+      selector: (row) =>
+        row.tgl_pengembalian == null ? "-" : row.tgl_pengembalian,
       sortable: true,
+      wrap: true,
       width: "190px",
     },
     {
       name: "Nama Aset",
-      selector: (row) => row.namaAset,
+      selector: (row) => row.nama,
       sortable: true,
       wrap: true,
       minWidth: "100px",
     },
     {
       name: "Nama Peminjam",
-      selector: (row) => row.namaPeminjam,
+      selector: (row) => row.nama_lengkap,
       sortable: true,
       wrap: true,
       minWidth: "200px",
     },
     {
       name: "No WA",
-      selector: (row) => row.noWa,
+      selector: (row) => row.no_wa,
       sortable: true,
+      wrap: true,
       width: "150px",
     },
     {
       name: "Tgl Mulai",
-      selector: (row) => row.tglMulai,
+      selector: (row) => row.tgl_mulai,
       sortable: true,
+      wrap: true,
       width: "130px",
     },
     {
       name: "Tgl Selesai",
-      selector: (row) => row.tglSelesai,
+      selector: (row) => row.tgl_selesai,
       sortable: true,
-      width: "135px",
+      wrap: true,
+      width: "140px",
     },
     {
       name: "Alasan",
@@ -73,7 +79,7 @@ export default function AdminSelesaiDipinjam() {
       cell: (row) => (
         <div
           className={`badge badge-outline ${
-            row.status == "selesai" ? "badge-success" : "badge-error"
+            row.status == "Selesai" ? "badge-success" : "badge-error"
           }`}
         >
           {row.status}
@@ -84,43 +90,45 @@ export default function AdminSelesaiDipinjam() {
     },
   ];
 
-  const data = [
-    {
-      id: 1,
-      tglPengembalian: "31/08/2024",
-      namaAset: "Kamera Mirrorless Sony A6700",
-      namaPeminjam: "Muhammad Shalahuddin Zain",
-      noWa: "081234567890",
-      tglMulai: "02/09/2024",
-      tglSelesai: "06/09/2024",
-      alasan:
-        "untuk keperluan dokumentasi acara kemah nasional selama satu minggu",
-      status: "selesai",
-    },
-    {
-      id: 2,
-      tglPengembalian: "-",
-      namaAset: "Kamera Mirrorless Sony A6400",
-      namaPeminjam: "Farhan Abdurrahman Zain",
-      noWa: "081234567890",
-      tglMulai: "02/09/2024",
-      tglSelesai: "06/09/2024",
-      alasan:
-        "untuk keperluan dokumentasi acara kemah provinsi selama satu minggu",
-      status: "ditolak",
-    },
-    {
-      id: 3,
-      tglPengembalian: "-",
-      namaAset: "Kamera Mirrorless Sony A6000",
-      namaPeminjam: "Fakhri Faturrahman Zain",
-      noWa: "081234567890",
-      tglMulai: "02/09/2024",
-      tglSelesai: "06/09/2024",
-      alasan: "untuk keperluan dokumentasi acara kemah kota selama satu minggu",
-      status: "dibatalkan",
-    },
-  ];
+  // fetch data pinjam
+  const [pinjams, setPinjams] = useState([]);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/selesaiPinjam")
+      .then((response) => response.json())
+      .then((data) => {
+        const filteredData = data.filter(
+          (pinjaman) =>
+            pinjaman.status === "Selesai" ||
+            pinjaman.status === "Ditolak" ||
+            pinjaman.status === "Dibatalkan"
+        );
+        setPinjams(filteredData); // Menyimpan data ke state
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [filteredPinjams, setFilteredPinjams] = useState([]);
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filteredSearch = pinjams.filter(
+        (pinjam) =>
+          pinjam.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pinjam.nama_lengkap
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          pinjam.no_wa.toString().includes(searchTerm)
+      );
+      setFilteredPinjams(filteredSearch);
+    } else {
+      setFilteredPinjams(pinjams); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+    }
+  }, [searchTerm, pinjams]);
 
   // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
   const router = useRouter();
@@ -140,6 +148,34 @@ export default function AdminSelesaiDipinjam() {
     checkAuth();
   }, [router]);
 
+  // Export File xlsx
+  const handleExportFile = () => {
+    const dataToExport = pinjams.map((pinjam) => ({
+      "Tanggal Pengembalian": pinjam.tgl_pengembalian,
+      "Nama Aset": pinjam.nama,
+      "Nama Peminjam": pinjam.nama_lengkap,
+      "No Wa": pinjam.no_wa,
+      "Tanggal Mulai": pinjam.tgl_mulai,
+      "Tanggal Selesai": pinjam.tgl_selesai,
+      Alasan: pinjam.alasan,
+      Status: pinjam.status,
+    }));
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils?.json_to_sheet(dataToExport);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "data sedang dipinjam");
+    worksheet["!cols"] = [
+      { wpx: 150 },
+      { wpx: 150 },
+      { wpx: 150 },
+      { wpx: 100 },
+      { wpx: 150 },
+      { wpx: 150 },
+      { wpx: 200 },
+      { wpx: 100 },
+    ];
+    XLSX.writeFile(workbook, `aset-selesai-dipinjam.xlsx`);
+  };
+
   // mounted
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -155,10 +191,19 @@ export default function AdminSelesaiDipinjam() {
         <h1 className="text-xl font-semibold">Aset Selesai Dipinjam</h1>
         <div className="flex justify-between mt-4">
           <label className="input input-bordered flex items-center gap-2 w-[300px]">
-            <input type="text" className="grow" placeholder="Search" />
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <IoSearch />
           </label>
-          <button className="btn btn-outline border-orange-500 text-orange-500 hover:bg-orange-500 hover:border-orange-500">
+          <button
+            className="btn btn-outline border-orange-500 text-orange-500 hover:bg-orange-500 hover:border-orange-500"
+            onClick={handleExportFile}
+          >
             <TbFileExport size={20} />
             Ekspor File
           </button>
@@ -167,7 +212,7 @@ export default function AdminSelesaiDipinjam() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={data}
+              data={filteredPinjams}
               customStyles={customStyles}
               pagination
             />

@@ -29,34 +29,39 @@ export default function AdminDataAset() {
   const columns = [
     {
       name: "No Aset",
-      selector: (row) => row.nomorAset,
+      selector: (row) => row.no_aset,
       sortable: true,
+      wrap: true,
       width: "120px",
     },
     {
       name: "Nama Aset",
-      selector: (row) => row.namaAset,
+      selector: (row) => row.nama,
       sortable: true,
       wrap: true,
       minWidth: "140px",
     },
     {
       name: "Unit",
-      selector: (row) => row.unitAset,
+      selector: (row) => row.unit,
       sortable: true,
       wrap: true,
       minWidth: "100px",
     },
     {
       name: "Lokasi",
-      selector: (row) => row.lokasiAset,
+      selector: (row) => row.lokasi,
       sortable: true,
+      wrap: true,
       minWidth: "150px",
     },
     {
       name: "Gambar",
-      cell: (row) => <img height="84px" width="56px" src={row.gambarAset} />,
+      cell: (row) => (
+        <img height="80px" width="80px" className="py-2" src={row.gambar} />
+      ),
       sortable: true,
+      wrap: true,
       width: "200px",
     },
     {
@@ -82,37 +87,44 @@ export default function AdminDataAset() {
     },
   ];
 
-  const data = [
-    {
-      id: 1,
-      nomorAset: "12345678",
-      namaAset: "Kamera Mirrorless Sony A6700",
-      unitAset: "Unit TK",
-      lokasiAset: "Kelas Argentina",
-      gambarAset: "081234567890",
-    },
-    {
-      id: 2,
-      nomorAset: "12345678",
-      namaAset: "Kamera Mirrorless Sony A6400",
-      unitAset: "Unit SD",
-      lokasiAset: "Gudang Gedung 1",
-      gambarAset: "081234567890",
-    },
-    {
-      id: 3,
-      nomorAset: "12345678",
-      namaAset: "Kamera Mirrorless Sony A6000",
-      unitAset: "Unit SMP",
-      lokasiAset: "Gudang Gedung 2 pojok",
-      gambarAset: "081234567890",
-    },
-  ];
+  // fetch data aset
+  const [asets, setAsets] = useState([]);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/aset")
+      .then((response) => response.json())
+      .then((data) => {
+        setAsets(data); // Menyimpan data ke state
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
 
+  // Search
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [filteredAsets, setFilteredAsets] = useState([]);
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filteredData = asets.filter(
+        (aset) =>
+          aset.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          aset.lokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          aset.unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          aset.no_aset.toString().includes(searchTerm)
+      );
+      setFilteredAsets(filteredData);
+    } else {
+      setFilteredAsets(asets); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+    }
+  }, [searchTerm, asets]);
+
+  // Hapus Data
   function handleActionHapus(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menghapus aset : ${row.nomorAset} - ${row.namaAset}`,
+      text: `ingin menghapus aset : ${row.no_aset} - ${row.nama}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -134,16 +146,14 @@ export default function AdminDataAset() {
     });
   }
 
+  // Impor Data
   const [importAset, setImportAset] = useState(false);
-
   const handleImportAset = () => {
     setImportAset(true);
   };
-
   const handleCloseImportAset = () => {
     setImportAset(false);
   };
-
   const handleSubmitImportAset = (event) => {
     event.preventDefault();
     Swal.fire({
@@ -156,16 +166,14 @@ export default function AdminDataAset() {
     setImportAset(false);
   };
 
+  // Tambah Data by Form
   const [addByForm, setAddByForm] = useState(false);
-
   const handleAddByForm = () => {
     setAddByForm(true);
   };
-
   const handleCloseAddByForm = () => {
     setAddByForm(false);
   };
-
   const handleSubmitAddByForm = (event) => {
     event.preventDefault();
     Swal.fire({
@@ -178,37 +186,33 @@ export default function AdminDataAset() {
     setAddByForm(false);
   };
 
+  // Tambah Data by QR
   const [addByQR, setAddByQR] = useState(false);
-
   const handleAddByQR = () => {
     setAddByQR(true);
   };
-
   const handleCloseAddByQR = () => {
     setAddByQR(false);
   };
 
+  // Edit Data
   const [editByForm, setEditByForm] = useState(false);
   const [editSelected, setEditSelected] = useState(null);
-
   const handleChangeValue = (event) => {
     setEditSelected(event.target.value);
   };
-
   const handleEditByForm = (row) => {
     setEditByForm(true);
     setEditSelected(row);
   };
-
   const handleCloseEditByForm = () => {
     setEditByForm(false);
   };
-
   const handleSubmitEditByForm = (event) => {
     event.preventDefault();
     Swal.fire({
       title: "Berhasil",
-      text: "Data Aset berhasil ditambahkan.",
+      text: "Data Aset berhasil diubah.",
       icon: "success",
       showConfirmButton: false,
       timer: 2000,
@@ -249,7 +253,13 @@ export default function AdminDataAset() {
         <h1 className="text-xl font-semibold">Data Aset</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
           <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
-            <input type="text" className="grow" placeholder="Search" />
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <IoSearch />
           </label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -280,7 +290,7 @@ export default function AdminDataAset() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={data}
+              data={filteredAsets}
               customStyles={customStyles}
               pagination
             />
@@ -409,7 +419,7 @@ export default function AdminDataAset() {
                 type="number"
                 placeholder="Masukkan nomor aset"
                 className="input input-bordered w-full"
-                value={editSelected.nomorAset}
+                value={editSelected.no_aset}
                 onChange={handleChangeValue}
                 required
               />
@@ -423,7 +433,7 @@ export default function AdminDataAset() {
                 type="text"
                 placeholder="Masukkan nama aset"
                 className="input input-bordered w-full"
-                value={editSelected.namaAset}
+                value={editSelected.nama}
                 onChange={handleChangeValue}
                 required
               />
@@ -435,15 +445,15 @@ export default function AdminDataAset() {
               </div>
               <select
                 className="select select-bordered"
-                value={editSelected.unitAset}
+                value={editSelected.unit}
                 onChange={handleChangeValue}
                 required
               >
-                <option value="Unit Yayasan">Unit Yayasan</option>
-                <option value="Unit SMA">Unit SMA</option>
-                <option value="Unit SMP">Unit SMP</option>
-                <option value="Unit SD">Unit SD</option>
-                <option value="Unit TK">Unit TK</option>
+                <option value="Yayasan">Unit Yayasan</option>
+                <option value="SMA">Unit SMA</option>
+                <option value="SMP">Unit SMP</option>
+                <option value="SD">Unit SD</option>
+                <option value="TK">Unit TK</option>
               </select>
             </label>
             {/* Lokasi */}
@@ -454,7 +464,7 @@ export default function AdminDataAset() {
               <textarea
                 className="textarea textarea-bordered"
                 placeholder="Masukkan lokasi"
-                value={editSelected.lokasiAset}
+                value={editSelected.lokasi}
                 onChange={handleChangeValue}
                 required
               ></textarea>

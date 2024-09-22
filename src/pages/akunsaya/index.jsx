@@ -133,7 +133,7 @@ export default function PageAkunSaya() {
   // fetch data diri
   useEffect(() => {
     // Fetch data dari API route
-    fetch("/api/users")
+    fetch("/api/akunKaryawan")
       .then((response) => response.json())
       .then((data) => {
         const filteredData = data.find((user) => user.id === tokenCookie.id);

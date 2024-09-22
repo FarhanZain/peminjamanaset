@@ -207,7 +207,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <li>
                 <Link
                   href="/admin/konfirmasi"
-                  className={`group relative flex items-center gap-3 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
                     (pathname === "/admin/konfirmasi" ||
                       pathname.includes("dashboard")) &&
                     "bg-orange-100 text-orange-500"
@@ -236,7 +236,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <li>
                 <Link
                   href="/admin/sedang_dipinjam"
-                  className={`group relative flex items-center gap-3 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
                     (pathname === "/admin/sedang_dipinjam" ||
                       pathname.includes("admin/sedang_dipinjam")) &&
                     "bg-orange-100 text-orange-500"
@@ -265,7 +265,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <li>
                 <Link
                   href="/admin/selesai_dipinjam"
-                  className={`group relative flex items-center gap-3 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
                     (pathname === "/admin/selesai_dipinjam" ||
                       pathname.includes("admin/selesai_dipinjam")) &&
                     "bg-orange-100 text-orange-500"
@@ -303,7 +303,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <li>
                 <Link
                   href="/admin/data_aset"
-                  className={`group relative flex items-center gap-3 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
                     (pathname === "/admin/data_aset" ||
                       pathname.includes("admin/data_aset")) &&
                     "bg-orange-100 text-orange-500"
@@ -334,7 +334,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <li>
                 <Link
                   href="/admin/data_karyawan"
-                  className={`group relative flex items-center gap-3 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
                     (pathname === "/admin/data_karyawan" ||
                       pathname.includes("admin/data_karyawan")) &&
                     "bg-orange-100 text-orange-500"
@@ -367,7 +367,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <li>
                 <Link
                   href="/admin/data_admin"
-                  className={`group relative flex items-center gap-3 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
                     (pathname === "/admin/data_admin" ||
                       pathname.includes("admin/data_admin")) &&
                     "bg-orange-100 text-orange-500"

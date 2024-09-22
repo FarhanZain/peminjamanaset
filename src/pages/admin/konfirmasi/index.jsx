@@ -25,41 +25,45 @@ export default function AdminKonfirmasi() {
   const columns = [
     {
       name: "Tgl Pengajuan",
-      selector: (row) => row.tglPengajuan,
+      selector: (row) => row.tgl_pengajuan,
       sortable: true,
-      width: "157px",
+      wrap: true,
+      width: "170px",
     },
     {
       name: "Nama Aset",
-      selector: (row) => row.namaAset,
+      selector: (row) => row.nama,
       sortable: true,
       wrap: true,
       minWidth: "100px",
     },
     {
       name: "Nama Peminjam",
-      selector: (row) => row.namaPeminjam,
+      selector: (row) => row.nama_lengkap,
       sortable: true,
       wrap: true,
       minWidth: "200px",
     },
     {
       name: "No WA",
-      selector: (row) => row.noWa,
+      selector: (row) => row.no_wa,
       sortable: true,
+      wrap: true,
       width: "150px",
     },
     {
       name: "Tgl Mulai",
-      selector: (row) => row.tglMulai,
+      selector: (row) => row.tgl_mulai,
       sortable: true,
-      width: "130px",
+      wrap: true,
+      width: "140px",
     },
     {
       name: "Tgl Selesai",
-      selector: (row) => row.tglSelesai,
+      selector: (row) => row.tgl_selesai,
       sortable: true,
-      width: "135px",
+      wrap: true,
+      width: "140px",
     },
     {
       name: "Alasan",
@@ -76,13 +80,13 @@ export default function AdminKonfirmasi() {
         <div className="flex gap-3">
           <button
             className="btn btn-outline btn-success btn-sm"
-            onClick={() => handleActionSetuju(row.id)}
+            onClick={() => handleActionSetuju(row)}
           >
             Setuju
           </button>
           <button
             className="btn btn-outline btn-error btn-sm"
-            onClick={() => handleActionTolak(row.id)}
+            onClick={() => handleActionTolak(row)}
           >
             Tolak
           </button>
@@ -91,45 +95,48 @@ export default function AdminKonfirmasi() {
     },
   ];
 
-  const data = [
-    {
-      id: 1,
-      tglPengajuan: "29/08/2024",
-      namaAset: "Kamera Mirrorless Sony A6700",
-      namaPeminjam: "Muhammad Shalahuddin Zain",
-      noWa: "081234567890",
-      tglMulai: "02/09/2024",
-      tglSelesai: "06/09/2024",
-      alasan:
-        "untuk keperluan dokumentasi acara kemah nasional selama satu minggu",
-    },
-    {
-      id: 2,
-      tglPengajuan: "30/08/2024",
-      namaAset: "Kamera Mirrorless Sony A6400",
-      namaPeminjam: "Farhan Abdurrahman Zain",
-      noWa: "081234567890",
-      tglMulai: "02/09/2024",
-      tglSelesai: "06/09/2024",
-      alasan:
-        "untuk keperluan dokumentasi acara kemah provinsi selama satu minggu",
-    },
-    {
-      id: 3,
-      tglPengajuan: "31/08/2024",
-      namaAset: "Kamera Mirrorless Sony A6000",
-      namaPeminjam: "Fakhri Faturrahman Zain",
-      noWa: "081234567890",
-      tglMulai: "02/09/2024",
-      tglSelesai: "06/09/2024",
-      alasan: "untuk keperluan dokumentasi acara kemah kota selama satu minggu",
-    },
-  ];
+  // fetch data pinjam
+  const [pinjams, setPinjams] = useState([]);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/sedangPinjam")
+      .then((response) => response.json())
+      .then((data) => {
+        const filteredData = data.filter(
+          (pinjaman) => pinjaman.status === "Menunggu Konfirmasi"
+        );
+        setPinjams(filteredData); // Menyimpan data ke state
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
 
-  function handleActionSetuju(id) {
+  // Search
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [filteredPinjams, setFilteredPinjams] = useState([]);
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      const filteredSearch = pinjams.filter(
+        (pinjam) =>
+          pinjam.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pinjam.nama_lengkap
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          pinjam.no_wa.toString().includes(searchTerm)
+      );
+      setFilteredPinjams(filteredSearch);
+    } else {
+      setFilteredPinjams(pinjams); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+    }
+  }, [searchTerm, pinjams]);
+
+  // Setuju
+  function handleActionSetuju(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menyetujui peminjaman aset -- oleh ${id}`,
+      text: `ingin menyetujui peminjaman aset ${row.nama} oleh ${row.nama_lengkap}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -151,10 +158,11 @@ export default function AdminKonfirmasi() {
     });
   }
 
-  function handleActionTolak(id) {
+  // Tolak
+  function handleActionTolak(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menolak peminjaman aset -- oleh ${id}`,
+      text: `ingin menolak peminjaman aset ${row.nama} oleh ${row.nama_lengkap}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -208,14 +216,20 @@ export default function AdminKonfirmasi() {
       <DefaultLayout>
         <h1 className="text-xl font-semibold">Konfirmasi Peminjaman Aset</h1>
         <label className="input input-bordered flex items-center gap-2 w-[300px] mt-4">
-          <input type="text" className="grow" placeholder="Search" />
+          <input
+            type="text"
+            className="grow"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
           <IoSearch />
         </label>
         <div className="mt-4">
           {isMounted && (
             <DataTable
               columns={columns}
-              data={data}
+              data={filteredPinjams}
               customStyles={customStyles}
               pagination
             />
