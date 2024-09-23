@@ -346,11 +346,12 @@ export default function AdminDataAdmin() {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
-      if (
-        res.status !== 200 ||
-        (data.role !== "admin" && data.role !== "superadmin")
-      ) {
-        data.role == "karyawan" ? router.push("/beranda") : router.push("/");
+      if (res.status !== 200 || data.role !== "superadmin") {
+        data.role == "karyawan"
+          ? router.push("/beranda")
+          : data.role == "admin"
+          ? router.push("/admin/konfirmasi")
+          : router.push("/");
       }
     };
     checkAuth();

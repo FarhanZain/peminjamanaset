@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import SidebarLinkGroup from "./SidebarLinkGroup";
+import { useRouter } from "next/router";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const pathname = usePathname();
@@ -52,6 +53,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       document.querySelector("body")?.classList.remove("sidebar-expanded");
     }
   }, [sidebarExpanded]);
+
+  // tampilkan menu jika superadmin
+  const router = useRouter();
+  const [showMenu, setShowMenu] = useState(true);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+      if (res.status !== 200 || data.role !== "superadmin") {
+        setShowMenu(false);
+      } else {
+        setShowMenu(true);
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   return (
     <aside
@@ -364,35 +381,37 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </li>
               {/* <!-- Menu Item Data Karyawan --> */}
               {/* <!-- Menu Item Data Admin --> */}
-              <li>
-                <Link
-                  href="/admin/data_admin"
-                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
-                    (pathname === "/admin/data_admin" ||
-                      pathname.includes("admin/data_admin")) &&
-                    "bg-orange-100 text-orange-500"
-                  }`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 48 48"
+              {showMenu && (
+                <li>
+                  <Link
+                    href="/admin/data_admin"
+                    className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                      (pathname === "/admin/data_admin" ||
+                        pathname.includes("admin/data_admin")) &&
+                      "bg-orange-100 text-orange-500"
+                    }`}
                   >
-                    <g
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="3"
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 48 48"
                     >
-                      <path d="M39 28v4h-8v-4a4 4 0 0 1 8 0m-13 4h18v12H26zm6-26h6a4 4 0 0 1 4 4v6M16 42h-6a4 4 0 0 1-4-4v-6M22 8v12c0 2.21-4.03 4-9 4s-9-1.79-9-4V8" />
-                      <path d="M22 14c0 2.21-4.03 4-9 4s-9-1.79-9-4m18-6c0 2.21-4.03 4-9 4s-9-1.79-9-4s4.03-4 9-4s9 1.79 9 4" />
-                    </g>
-                  </svg>
-                  Data Admin
-                </Link>
-              </li>
+                      <g
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                      >
+                        <path d="M39 28v4h-8v-4a4 4 0 0 1 8 0m-13 4h18v12H26zm6-26h6a4 4 0 0 1 4 4v6M16 42h-6a4 4 0 0 1-4-4v-6M22 8v12c0 2.21-4.03 4-9 4s-9-1.79-9-4V8" />
+                        <path d="M22 14c0 2.21-4.03 4-9 4s-9-1.79-9-4m18-6c0 2.21-4.03 4-9 4s-9-1.79-9-4s4.03-4 9-4s9 1.79 9 4" />
+                      </g>
+                    </svg>
+                    Data Admin
+                  </Link>
+                </li>
+              )}
               {/* <!-- Menu Item Data Admin --> */}
             </ul>
           </div>

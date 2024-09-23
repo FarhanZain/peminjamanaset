@@ -1,37 +1,72 @@
-import Navbar from "@/components/navbar";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
-import { TbEdit } from "react-icons/tb";
-import { BiLogOut } from "react-icons/bi";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { RiLockPasswordLine } from "react-icons/ri";
+import { LuUser2 } from "react-icons/lu";
 import Modal from "@/components/modal";
 import Swal from "sweetalert2";
-import { useRouter } from "next/router";
 import ModalLoading from "@/components/modalLoading";
 
-export default function PageAkunSaya() {
-  const [tokenCookie, setTokenCookie] = useState(null);
+export default function AdminKonfirmasi() {
   const [loadingModal, setLoadingModal] = useState(false);
+  const [tokenCookie, setTokenCookie] = useState(null);
+
+  // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
   const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
 
-  // ubah data diri
-  const [ubahDataDiri, setUbahDataDiri] = useState(false);
-  const [usernameKaryawan, setUsernameKaryawan] = useState(null);
-  const [namaKaryawan, setNamaKaryawan] = useState(null);
-  const [waKaryawan, setWaKaryawan] = useState(null);
-  const [alamatKaryawan, setAlamatKaryawan] = useState(null);
+      if (
+        res.status !== 200 ||
+        (data.role !== "admin" && data.role !== "superadmin")
+      ) {
+        data.role == "karyawan" ? router.push("/beranda") : router.push("/");
+      } else {
+        setTokenCookie(data);
+      }
+    };
 
-  const handleUbahDataDiri = () => {
-    setUbahDataDiri(true);
-    setUsernameKaryawan(users.username);
-    setNamaKaryawan(users.nama_lengkap);
-    setWaKaryawan(users.no_wa);
-    setAlamatKaryawan(users.alamat);
+    checkAuth();
+  }, [router]);
+
+  // fetch data profil
+  const [users, setUsers] = useState({});
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (tokenCookie) {
+      fetchData();
+    }
+  }, [tokenCookie]);
+  const fetchData = () => {
+    fetch("/api/akunAdmin")
+      .then((response) => response.json())
+      .then((data) => {
+        const filteredData = data.find((user) => user.id === tokenCookie.id);
+        setUsers(filteredData);
+      })
+      .catch((err) => {
+        setError(err);
+      });
   };
-  const handleCloseUbahDataDiri = () => {
-    setUbahDataDiri(null);
+
+  // Ubah Profil
+  const [ubahProfilAdmin, setUbahProfilAdmin] = useState(false);
+  const [usernameAdmin, setUsernameAdmin] = useState(false);
+  const [waAdmin, setWaAdmin] = useState(false);
+
+  const handleUbahProfilAdmin = () => {
+    setUbahProfilAdmin(true);
+    setUsernameAdmin(users.username);
+    setWaAdmin(users.no_wa);
   };
-  const handleSubmitUbahDataDiri = (event) => {
+  const handleCloseUbahProfilAdmin = () => {
+    setUbahProfilAdmin(null);
+  };
+  const handleSubmitUbahProfilAdmin = (event) => {
     event.preventDefault();
     Swal.fire({
       title: "Apakah kamu yakin ?",
@@ -48,17 +83,15 @@ export default function PageAkunSaya() {
       if (result.isConfirmed) {
         try {
           setLoadingModal(true);
-          const res = await fetch("/api/akunKaryawan", {
+          const res = await fetch("/api/akunAdmin", {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
               updatedId: users.id,
-              updatedUsername: usernameKaryawan,
-              updatedWa: waKaryawan,
-              updatedNama: namaKaryawan,
-              updatedAlamat: alamatKaryawan,
+              updatedUsername: usernameAdmin,
+              updatedWa: waAdmin,
             }),
           });
           const result = await res.json();
@@ -71,8 +104,7 @@ export default function PageAkunSaya() {
               timer: 2000,
             });
             fetchData();
-            setLoadingModal(false);
-            setUbahDataDiri(false);
+            window.location.reload();
           } else if (res.status == 409) {
             Swal.fire({
               title: "Gagal",
@@ -91,6 +123,7 @@ export default function PageAkunSaya() {
             });
           }
           setLoadingModal(false);
+          setUbahProfilAdmin(false);
         } catch (error) {
           Swal.fire({
             title: "Error",
@@ -100,7 +133,7 @@ export default function PageAkunSaya() {
             timer: 10000,
           });
           setLoadingModal(false);
-          setUbahDataDiri(false);
+          setUbahProfilAdmin(false);
         }
       }
     });
@@ -140,7 +173,7 @@ export default function PageAkunSaya() {
         if (result.isConfirmed) {
           try {
             setLoadingModal(true);
-            const res = await fetch("/api/passwordKaryawan", {
+            const res = await fetch("/api/passwordAdmin", {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
@@ -201,78 +234,18 @@ export default function PageAkunSaya() {
     }
   };
 
-  // logout
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Apakah kamu ingin keluar ?",
-      icon: "warning",
-      showCancelButton: true,
-      reverseButtons: true,
-      confirmButtonColor: "#FF5861",
-      cancelButtonColor: "#d9d9d9",
-      confirmButtonText: "Ya",
-      cancelButtonText: "Tidak",
-      allowOutsideClick: false,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        fetch("/api/logout", { method: "POST" });
-        router.push("/");
-      }
-    });
-  };
-
-  // akses page lain ketika belum login atau tidak login sebagai karyawan
-  useEffect(() => {
-    const checkAuth = async () => {
-      const res = await fetch("/api/check-auth");
-      const data = await res.json();
-
-      if (res.status !== 200 || data.role !== "karyawan") {
-        data.role == "admin" || data.role == "superadmin"
-          ? router.push("/admin/konfirmasi")
-          : router.push("/");
-      } else {
-        setTokenCookie(data);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  // fetch data diri
-  const [users, setUsers] = useState({});
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    if (tokenCookie) {
-      fetchData();
-    }
-  }, [tokenCookie]);
-
-  const fetchData = () => {
-    fetch("/api/akunKaryawan")
-      .then((response) => response.json())
-      .then((data) => {
-        const filteredData = data.find((user) => user.id === tokenCookie.id);
-        setUsers(filteredData);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  };
-
   return (
     <>
       <Head>
-        <title>Akun Saya</title>
+        <title>Profil Admin</title>
       </Head>
-      <Navbar />
-      <div className="container px-6 mx-auto my-20 lg:my-24 lg:px-12">
-        <div className="flex flex-col items-center">
+      <DefaultLayout>
+        <div className="flex flex-col">
           {/* Data Diri Title */}
-          <h1 className="mt-4 text-2xl md:text-3xl font-bold">Data Diri</h1>
+          <h1 className="text-xl font-semibold">Profil Admin</h1>
 
           {/* Table */}
-          <div className="mt-5 md:mt-10 flex flex-col items-center">
+          <div className="mt-5 w-full md:mt-10 lg:w-1/2 flex flex-col items-center">
             <table className="table">
               <tbody>
                 <tr>
@@ -280,30 +253,22 @@ export default function PageAkunSaya() {
                   <td>{users.username}</td>
                 </tr>
                 <tr>
-                  <th>Nama Lengkap</th>
-                  <td>{users.nama_lengkap}</td>
-                </tr>
-                <tr>
-                  <th>Nomor WA</th>
-                  <td>{users.no_wa}</td>
-                </tr>
-                <tr>
-                  <th>Alamat</th>
-                  <td>{users.alamat}</td>
+                  <th>Nomor Whatsapp</th>
+                  <td>{users.no_wa == null ? "-" : users.no_wa}</td>
                 </tr>
               </tbody>
             </table>
-            <button
-              className="btn btn-sm btn-ghost text-orange-500 hover:bg-orange-50 mt-2 md:mt-4"
-              onClick={handleUbahDataDiri}
-            >
-              <TbEdit size={20} />
-              Ubah Data Diri
-            </button>
           </div>
 
           {/* Button ganti password dan logout */}
-          <div className="flex gap-5 mt-5 md:mt-16">
+          <div className="flex gap-5 mt-5 md:mt-10">
+            <button
+              className="btn btn-outline border-orange-500 text-orange-500 hover:border-orange-500 hover:bg-orange-500"
+              onClick={handleUbahProfilAdmin}
+            >
+              <LuUser2 size={20} />
+              Ubah Profil
+            </button>
             <button
               className="btn btn-outline border-orange-500 text-orange-500 hover:border-orange-500 hover:bg-orange-500"
               onClick={handleUbahPassword}
@@ -311,21 +276,18 @@ export default function PageAkunSaya() {
               <RiLockPasswordLine size={20} />
               Ganti Password
             </button>
-            <button
-              className="btn bg-orange-500 text-white hover:bg-orange-600"
-              onClick={handleLogout}
-            >
-              <BiLogOut size={20} />
-              Log Out
-            </button>
           </div>
         </div>
-      </div>
+      </DefaultLayout>
 
       {/* Modal Ubah Data Diri */}
-      {ubahDataDiri && (
-        <Modal title="Ubah Data Diri" onCloseModal={handleCloseUbahDataDiri}>
-          <form className="mt-4" action="" onSubmit={handleSubmitUbahDataDiri}>
+      {ubahProfilAdmin && (
+        <Modal title="Ubah Data Diri" onCloseModal={handleCloseUbahProfilAdmin}>
+          <form
+            className="mt-4"
+            action=""
+            onSubmit={handleSubmitUbahProfilAdmin}
+          >
             {/* Username */}
             <label className="form-control w-full">
               <div className="label">
@@ -335,56 +297,30 @@ export default function PageAkunSaya() {
                 type="text"
                 placeholder="Masukkan username"
                 className="input input-bordered w-full"
-                value={usernameKaryawan}
-                onChange={(e) => setUsernameKaryawan(e.target.value)}
-                required
-              />
-            </label>
-            {/* Nama Lengkap */}
-            <label className="form-control w-full mt-2">
-              <div className="label">
-                <span className="label-text">Nama Lengkap</span>
-              </div>
-              <input
-                type="text"
-                placeholder="Masukkan nama lengkap"
-                className="input input-bordered w-full"
-                value={namaKaryawan}
-                onChange={(e) => setNamaKaryawan(e.target.value)}
+                value={usernameAdmin}
+                onChange={(e) => setUsernameAdmin(e.target.value)}
                 required
               />
             </label>
             {/* Nomor WA */}
-            <label className="form-control w-full mt-2">
-              <div className="label">
-                <span className="label-text">Nomor WA</span>
-              </div>
-              <input
-                type="number"
-                placeholder="Masukkan nomor wa"
-                className="input input-bordered w-full"
-                value={waKaryawan}
-                onChange={(e) => setWaKaryawan(e.target.value)}
-                required
-              />
-            </label>
-            {/* Alamat */}
-            <label className="form-control w-full mt-2">
-              <div className="label">
-                <span className="label-text">Alamat</span>
-              </div>
-              <textarea
-                className="textarea textarea-bordered"
-                placeholder="Masukkan alamat"
-                onChange={(e) => setAlamatKaryawan(e.target.value)}
-                required
-              >
-                {alamatKaryawan}
-              </textarea>
-            </label>
+            {users.role === "admin" && (
+              <label className="form-control w-full mt-2">
+                <div className="label">
+                  <span className="label-text">Nomor WA</span>
+                </div>
+                <input
+                  type="number"
+                  placeholder="Masukkan nomor wa"
+                  className="input input-bordered w-full"
+                  value={waAdmin}
+                  onChange={(e) => setWaAdmin(e.target.value)}
+                  required
+                />
+              </label>
+            )}
             {/* Submit */}
             <div className="flex justify-between mt-8">
-              <button className="btn" onClick={handleCloseUbahDataDiri}>
+              <button className="btn" onClick={handleCloseUbahProfilAdmin}>
                 Batal
               </button>
               <button

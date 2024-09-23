@@ -200,6 +200,9 @@ export default function AdminDataKaryawan() {
   };
   const handleCloseAddKaryawan = () => {
     setAddKaryawan(false);
+    setNamaKaryawan("");
+    setAlamatKaryawan("");
+    setWaKaryawan("");
   };
   const handleSubmitAddKaryawan = async (event) => {
     event.preventDefault();
@@ -241,9 +244,9 @@ export default function AdminDataKaryawan() {
       }
       setAddKaryawan(false);
       setLoadingModal(false);
-      // setUsernameAdmin("");
-      // setWaAdmin("");
-      // setUnitAdmin("");
+      setNamaKaryawan("");
+      setAlamatKaryawan("");
+      setWaKaryawan("");
     } catch (error) {
       Swal.fire({
         title: "Error",
