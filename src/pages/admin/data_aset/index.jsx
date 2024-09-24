@@ -9,8 +9,12 @@ import { TiPlus } from "react-icons/ti";
 import Modal from "@/components/modal";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { useRouter } from "next/router";
+import { CiImageOff } from "react-icons/ci";
+import ModalLoading from "@/components/modalLoading";
 
 export default function AdminDataAset() {
+  const [loadingModal, setLoadingModal] = useState(false);
+
   const customStyles = {
     headCells: {
       style: {
@@ -57,9 +61,17 @@ export default function AdminDataAset() {
     },
     {
       name: "Gambar",
-      cell: (row) => (
-        <img height="80px" width="80px" className="py-2" src={row.gambar} />
-      ),
+      cell: (row) =>
+        row.gambar == null ? (
+          <div className="w-20 h-20 flex justify-center items-center bg-slate-100 my-2">
+            <CiImageOff size={32} />
+          </div>
+        ) : (
+          <img
+            className="w-20 h-20 my-2 object-cover"
+            src={`../${row.gambar}`}
+          />
+        ),
       sortable: true,
       wrap: true,
       width: "200px",
@@ -91,7 +103,9 @@ export default function AdminDataAset() {
   const [asets, setAsets] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Fetch data dari API route
+    fetchData();
+  }, []);
+  const fetchData = () => {
     fetch("/api/aset")
       .then((response) => response.json())
       .then((data) => {
@@ -100,7 +114,7 @@ export default function AdminDataAset() {
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  };
 
   // Search
   const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
@@ -133,15 +147,47 @@ export default function AdminDataAset() {
       confirmButtonText: "Hapus",
       cancelButtonText: "Batal",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "Aset telah dihapus.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
+        try {
+          const formData = new FormData();
+          formData.append("deletedId", row.id);
+
+          setLoadingModal(true);
+          const res = await fetch("/api/aset", {
+            method: "DELETE",
+            body: formData,
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+          } else if (res.status == 500) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+        }
       }
     });
   }
@@ -168,22 +214,89 @@ export default function AdminDataAset() {
 
   // Tambah Data by Form
   const [addByForm, setAddByForm] = useState(false);
+  const [nomorAset, setNomorAset] = useState(null);
+  const [namaAset, setNamaAset] = useState(null);
+  const [unitAset, setUnitAset] = useState("Yayasan");
+  const [lokasiAset, setLokasiAset] = useState(null);
+  const [gambarAset, setGambarAset] = useState(null);
+
   const handleAddByForm = () => {
     setAddByForm(true);
   };
   const handleCloseAddByForm = () => {
     setAddByForm(false);
+    setNomorAset("");
+    setNamaAset("");
+    setUnitAset("Yayasan");
+    setLokasiAset("");
+    setGambarAset(null);
   };
-  const handleSubmitAddByForm = (event) => {
+  const handleSubmitAddByForm = async (event) => {
     event.preventDefault();
-    Swal.fire({
-      title: "Berhasil",
-      text: "Data Aset berhasil ditambahkan.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
-    });
-    setAddByForm(false);
+    setLoadingModal(true);
+    try {
+      const formData = new FormData();
+      formData.append("nomorAset", nomorAset);
+      formData.append("namaAset", namaAset);
+      formData.append("unitAset", unitAset);
+      formData.append("lokasiAset", lokasiAset);
+      formData.append("gambarAset", gambarAset);
+
+      const res = await fetch("/api/aset", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      if (res.status == 200) {
+        Swal.fire({
+          title: "Berhasil",
+          text: result.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        fetchData();
+        setAddByForm(false);
+        setNomorAset("");
+        setNamaAset("");
+        setUnitAset("Yayasan");
+        setLokasiAset("");
+        setGambarAset(null);
+      } else if (res.status == 409) {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else if (res.status == 500) {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setAddByForm(false);
+        setNomorAset("");
+        setNamaAset("");
+        setUnitAset("Yayasan");
+        setLokasiAset("");
+        setGambarAset(null);
+      }
+      setLoadingModal(false);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 10000,
+      });
+      setAddByForm(false);
+      setLoadingModal(false);
+    }
   };
 
   // Tambah Data by QR
@@ -197,13 +310,20 @@ export default function AdminDataAset() {
 
   // Edit Data
   const [editByForm, setEditByForm] = useState(false);
-  const [editSelected, setEditSelected] = useState(null);
-  const handleChangeValue = (event) => {
-    setEditSelected(event.target.value);
-  };
+  const [editId, setEditId] = useState(null);
+  const [editNomor, setEditNomor] = useState(null);
+  const [editNama, setEditNama] = useState(null);
+  const [editUnit, setEditUnit] = useState(null);
+  const [editLokasi, setEditLokasi] = useState(null);
+  const [editGambar, setEditGambar] = useState(null);
+
   const handleEditByForm = (row) => {
     setEditByForm(true);
-    setEditSelected(row);
+    setEditId(row.id);
+    setEditNomor(row.no_aset);
+    setEditNama(row.nama);
+    setEditUnit(row.unit);
+    setEditLokasi(row.lokasi);
   };
   const handleCloseEditByForm = () => {
     setEditByForm(false);
@@ -211,13 +331,80 @@ export default function AdminDataAset() {
   const handleSubmitEditByForm = (event) => {
     event.preventDefault();
     Swal.fire({
-      title: "Berhasil",
-      text: "Data Aset berhasil diubah.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
+      title: "Apakah kamu yakin ?",
+      text: `ingin merubah data aset`,
+      icon: "warning",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonColor: "#FF5861",
+      cancelButtonColor: "#d9d9d9",
+      confirmButtonText: "Ya",
+      cancelButtonText: "Batal",
+      allowOutsideClick: false,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoadingModal(true);
+        try {
+          const formData = new FormData();
+          formData.append("updatedId", editId);
+          formData.append("updatedNomor", editNomor);
+          formData.append("updatedNama", editNama);
+          formData.append("updatedUnit", editUnit);
+          formData.append("updatedLokasi", editLokasi);
+          formData.append("updatedGambar", editGambar);
+
+          const res = await fetch("/api/aset", {
+            method: "PUT",
+            body: formData,
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            setEditByForm(false);
+            setEditGambar(null);
+          } else if (res.status == 409) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            setEditGambar(null);
+          } else if (res.status == 500) {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            setEditByForm(false);
+            setEditGambar(null);
+          }
+          setLoadingModal(false);
+          setEditGambar(null);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setEditByForm(false);
+          setLoadingModal(false);
+          setEditGambar(null);
+        }
+      }
     });
-    setEditByForm(false);
   };
 
   // akses page lain ketika belum login atau tidak login sebagai admin / superadmin
@@ -339,6 +526,8 @@ export default function AdminDataAset() {
                 type="number"
                 placeholder="Masukkan nomor aset"
                 className="input input-bordered w-full"
+                defaultValue={nomorAset}
+                onChange={(e) => setNomorAset(e.target.value)}
                 required
               />
             </label>
@@ -351,6 +540,8 @@ export default function AdminDataAset() {
                 type="text"
                 placeholder="Masukkan nama aset"
                 className="input input-bordered w-full"
+                defaultValue={namaAset}
+                onChange={(e) => setNamaAset(e.target.value)}
                 required
               />
             </label>
@@ -359,12 +550,19 @@ export default function AdminDataAset() {
               <div className="label">
                 <span className="label-text">Unit Aset</span>
               </div>
-              <select className="select select-bordered" required>
-                <option>Unit Yayasan</option>
-                <option>Unit SMA</option>
-                <option>Unit SMP</option>
-                <option>Unit SD</option>
-                <option>Unit TK</option>
+              <select
+                className="select select-bordered"
+                defaultValue={unitAset}
+                onChange={(e) => setUnitAset(e.target.value)}
+                required
+              >
+                <option value="Yayasan" selected>
+                  Unit Yayasan
+                </option>
+                <option value="SMA">Unit SMA</option>
+                <option value="SMP">Unit SMP</option>
+                <option value="SD">Unit SD</option>
+                <option value="TK">Unit TK</option>
               </select>
             </label>
             {/* Lokasi */}
@@ -375,6 +573,8 @@ export default function AdminDataAset() {
               <textarea
                 className="textarea textarea-bordered"
                 placeholder="Masukkan lokasi"
+                defaultValue={lokasiAset}
+                onChange={(e) => setLokasiAset(e.target.value)}
                 required
               ></textarea>
             </label>
@@ -387,7 +587,7 @@ export default function AdminDataAset() {
                 type="file"
                 className="file-input file-input-bordered w-full"
                 accept=".jpg, .jpeg, .png"
-                required
+                onChange={(e) => setGambarAset(e.target.files[0])}
               />
             </label>
             {/* Submit */}
@@ -407,7 +607,7 @@ export default function AdminDataAset() {
       )}
 
       {/* Modal Edit Aset */}
-      {editByForm && editSelected && (
+      {editByForm && (
         <Modal title="Edit Aset" onCloseModal={handleCloseEditByForm}>
           <form className="mt-4" action="" onSubmit={handleSubmitEditByForm}>
             {/* Nomor Aset */}
@@ -419,8 +619,8 @@ export default function AdminDataAset() {
                 type="number"
                 placeholder="Masukkan nomor aset"
                 className="input input-bordered w-full"
-                value={editSelected.no_aset}
-                onChange={handleChangeValue}
+                value={editNomor}
+                onChange={(e) => setEditNomor(e.target.value)}
                 required
               />
             </label>
@@ -433,8 +633,8 @@ export default function AdminDataAset() {
                 type="text"
                 placeholder="Masukkan nama aset"
                 className="input input-bordered w-full"
-                value={editSelected.nama}
-                onChange={handleChangeValue}
+                value={editNama}
+                onChange={(e) => setEditNama(e.target.value)}
                 required
               />
             </label>
@@ -445,8 +645,8 @@ export default function AdminDataAset() {
               </div>
               <select
                 className="select select-bordered"
-                value={editSelected.unit}
-                onChange={handleChangeValue}
+                value={editUnit}
+                onChange={(e) => setEditUnit(e.target.value)}
                 required
               >
                 <option value="Yayasan">Unit Yayasan</option>
@@ -464,10 +664,11 @@ export default function AdminDataAset() {
               <textarea
                 className="textarea textarea-bordered"
                 placeholder="Masukkan lokasi"
-                value={editSelected.lokasi}
-                onChange={handleChangeValue}
+                onChange={(e) => setEditLokasi(e.target.value)}
                 required
-              ></textarea>
+              >
+                {editLokasi}
+              </textarea>
             </label>
             {/* Gambar Aset */}
             <label className="form-control w-full mt-2">
@@ -478,7 +679,7 @@ export default function AdminDataAset() {
                 type="file"
                 className="file-input file-input-bordered w-full"
                 accept=".jpg, .jpeg, .png"
-                required
+                onChange={(e) => setEditGambar(e.target.files[0])}
               />
             </label>
             {/* Submit */}
@@ -505,20 +706,36 @@ export default function AdminDataAset() {
               // Cek jika result adalah array dan memiliki setidaknya satu objek dengan rawValue
               if (
                 Array.isArray(result) &&
-                result.length > 0 &&
+                result.length === 1 &&
                 result[0]?.rawValue
               ) {
                 // Ambil rawValue dari objek pertama dalam array
                 const scanResult = result[0].rawValue;
 
-                Swal.fire({
-                  title: "Scan Berhasil!",
-                  text: `Hasil: ${scanResult}`,
-                  icon: "success",
-                  showConfirmButton: false,
-                  timer: 2000,
-                });
-                setAddByQR(false);
+                const inputQR = scanResult.split(",");
+
+                const textNomor = inputQR[0];
+                const textNama = inputQR[1];
+                const textUnit = inputQR[2];
+                const textLokasi = inputQR[3];
+
+                if (inputQR.length === 4) {
+                  setAddByQR(false);
+                  setNomorAset(textNomor);
+                  setNamaAset(textNama);
+                  setUnitAset(textUnit);
+                  setLokasiAset(textLokasi);
+                  setAddByForm(true);
+                } else {
+                  Swal.fire({
+                    title: "Scan Gagal",
+                    text: "QR code tidak terbaca, coba lagi.",
+                    icon: "error",
+                    showConfirmButton: false,
+                    timer: 2000,
+                  });
+                  setAddByQR(false);
+                }
               } else {
                 // Jika tidak ada rawValue atau tidak ada hasil
                 Swal.fire({
@@ -534,6 +751,9 @@ export default function AdminDataAset() {
           />
         </Modal>
       )}
+
+      {/* Modal Loading */}
+      {loadingModal && <ModalLoading />}
     </>
   );
 }
