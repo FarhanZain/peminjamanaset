@@ -172,22 +172,61 @@ export default function AdminDataKaryawan() {
 
   // Import File Tambah Karyawan
   const [importKaryawan, setImportKaryawan] = useState(false);
+  const [file, setFile] = useState(null);
+
   const handleImportKaryawan = () => {
     setImportKaryawan(true);
   };
   const handleCloseImportKaryawan = () => {
     setImportKaryawan(false);
   };
-  const handleSubmitImportKaryawan = (event) => {
+  const handleSubmitImportKaryawan = async (event) => {
     event.preventDefault();
-    Swal.fire({
-      title: "Berhasil",
-      text: "Data Karyawan berhasil diimpor.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
-    });
-    setImportKaryawan(false);
+    setLoadingModal(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/importKaryawan", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      console.log(result);
+      if (res.status == 200) {
+        Swal.fire({
+          title: "Berhasil",
+          text: result.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        fetchData();
+        setImportKaryawan(false);
+        setFile(null);
+      } else {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+        });
+        setImportKaryawan(false);
+        setFile(null);
+      }
+      setLoadingModal(false);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 10000,
+      });
+      setImportKaryawan(false);
+      setLoadingModal(false);
+    }
   };
 
   // Tambah Data Karyawan
@@ -451,6 +490,7 @@ export default function AdminDataKaryawan() {
               type="file"
               className="file-input file-input-bordered w-full"
               accept=".xlsx"
+              onChange={(e) => setFile(e.target.files[0])}
               required
             />
             <p className="mt-2 text-error">

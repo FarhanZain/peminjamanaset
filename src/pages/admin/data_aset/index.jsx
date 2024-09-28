@@ -63,7 +63,7 @@ export default function AdminDataAset() {
       name: "Gambar",
       cell: (row) =>
         row.gambar == null ? (
-          <div className="w-20 h-20 flex justify-center items-center bg-slate-100 my-2">
+          <div className="w-20 h-20 flex justify-center items-center bg-slate-100 my-2 rounded-lg">
             <CiImageOff size={32} />
           </div>
         ) : (
@@ -109,7 +109,7 @@ export default function AdminDataAset() {
     fetch("/api/aset")
       .then((response) => response.json())
       .then((data) => {
-        setAsets(data); // Menyimpan data ke state
+        setAsets(data);
       })
       .catch((err) => {
         setError(err);
@@ -117,7 +117,7 @@ export default function AdminDataAset() {
   };
 
   // Search
-  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredAsets, setFilteredAsets] = useState([]);
   useEffect(() => {
     if (searchTerm.length >= 2) {
@@ -194,22 +194,61 @@ export default function AdminDataAset() {
 
   // Impor Data
   const [importAset, setImportAset] = useState(false);
+  const [file, setFile] = useState(null);
+
   const handleImportAset = () => {
     setImportAset(true);
   };
   const handleCloseImportAset = () => {
     setImportAset(false);
   };
-  const handleSubmitImportAset = (event) => {
+  const handleSubmitImportAset = async (event) => {
     event.preventDefault();
-    Swal.fire({
-      title: "Berhasil",
-      text: "Data Aset berhasil diimpor.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
-    });
-    setImportAset(false);
+    setLoadingModal(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/importAset", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      console.log(result);
+      if (res.status == 200) {
+        Swal.fire({
+          title: "Berhasil",
+          text: result.message,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        fetchData();
+        setImportAset(false);
+        setFile(null);
+      } else {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+        });
+        setImportAset(false);
+        setFile(null);
+      }
+      setLoadingModal(false);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 10000,
+      });
+      setImportAset(false);
+      setLoadingModal(false);
+    }
   };
 
   // Tambah Data by Form
@@ -493,6 +532,7 @@ export default function AdminDataAset() {
               type="file"
               className="file-input file-input-bordered w-full"
               accept=".xlsx"
+              onChange={(e) => setFile(e.target.files[0])}
               required
             />
             <p className="mt-2 text-error">

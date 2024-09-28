@@ -5,8 +5,21 @@ import Swal from "sweetalert2";
 import { IoSearch } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import ModalLoading from "@/components/modalLoading";
 
 export default function AdminKonfirmasi() {
+  const [loadingModal, setLoadingModal] = useState(false);
+
+  const formatTanggal = (tanggal) => {
+    const format = new Date(tanggal).toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return format;
+  };
+
   const customStyles = {
     headCells: {
       style: {
@@ -25,7 +38,7 @@ export default function AdminKonfirmasi() {
   const columns = [
     {
       name: "Tgl Pengajuan",
-      selector: (row) => row.tgl_pengajuan,
+      selector: (row) => formatTanggal(row.tgl_pengajuan),
       sortable: true,
       wrap: true,
       width: "170px",
@@ -36,6 +49,13 @@ export default function AdminKonfirmasi() {
       sortable: true,
       wrap: true,
       minWidth: "100px",
+    },
+    {
+      name: "Unit",
+      selector: (row) => row.unit,
+      sortable: true,
+      wrap: true,
+      width: "95px",
     },
     {
       name: "Nama Peminjam",
@@ -53,14 +73,14 @@ export default function AdminKonfirmasi() {
     },
     {
       name: "Tgl Mulai",
-      selector: (row) => row.tgl_mulai,
+      selector: (row) => formatTanggal(row.tgl_mulai),
       sortable: true,
       wrap: true,
       width: "140px",
     },
     {
       name: "Tgl Selesai",
-      selector: (row) => row.tgl_selesai,
+      selector: (row) => formatTanggal(row.tgl_selesai),
       sortable: true,
       wrap: true,
       width: "140px",
@@ -99,22 +119,24 @@ export default function AdminKonfirmasi() {
   const [pinjams, setPinjams] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Fetch data dari API route
+    fetchData();
+  }, []);
+  const fetchData = () => {
     fetch("/api/sedangPinjam")
       .then((response) => response.json())
       .then((data) => {
         const filteredData = data.filter(
           (pinjaman) => pinjaman.status === "Menunggu Konfirmasi"
         );
-        setPinjams(filteredData); // Menyimpan data ke state
+        setPinjams(filteredData);
       })
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  };
 
   // Search
-  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredPinjams, setFilteredPinjams] = useState([]);
   useEffect(() => {
     if (searchTerm.length >= 2) {
@@ -128,7 +150,7 @@ export default function AdminKonfirmasi() {
       );
       setFilteredPinjams(filteredSearch);
     } else {
-      setFilteredPinjams(pinjams); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+      setFilteredPinjams(pinjams);
     }
   }, [searchTerm, pinjams]);
 
@@ -145,15 +167,51 @@ export default function AdminKonfirmasi() {
       confirmButtonText: "Setuju",
       cancelButtonText: "Batal",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "peminjaman telah disetujui.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
+        setLoadingModal(true);
+        try {
+          const res = await fetch("/api/sedangPinjam", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              idRiwayat: row.id,
+              idUser: row.id_user,
+            }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: "Peminjaman berhasil disetujui",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            console.log(result);
+          } else {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 5000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+        }
       }
     });
   }
@@ -171,15 +229,52 @@ export default function AdminKonfirmasi() {
       confirmButtonText: "Tolak",
       cancelButtonText: "Batal",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "peminjaman telah ditolak.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
+        setLoadingModal(true);
+        try {
+          const res = await fetch("/api/selesaiPinjam", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              idRiwayat: row.id,
+              idAset: row.id_aset,
+              idUser: row.id_user,
+            }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: "Peminjaman berhasil disetujui",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            console.log(result);
+          } else {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 5000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+        }
       }
     });
   }
@@ -236,6 +331,9 @@ export default function AdminKonfirmasi() {
           )}
         </div>
       </DefaultLayout>
+
+      {/* Modal Loading */}
+      {loadingModal && <ModalLoading />}
     </>
   );
 }

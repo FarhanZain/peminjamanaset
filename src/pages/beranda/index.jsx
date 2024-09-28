@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import CardBeranda from "@/components/cardBeranda";
 import Navbar from "@/components/navbar";
 import Head from "next/head";
@@ -10,46 +9,105 @@ import { HiOutlineLocationMarker } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { useRouter } from "next/router";
 import { BsFolderX } from "react-icons/bs";
+import { CiImageOff } from "react-icons/ci";
+import ModalLoading from "@/components/modalLoading";
 
 export default function PageBeranda() {
+  const [loadingModal, setLoadingModal] = useState(false);
+
+  const today = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Jakarta",
+  });
+
+  // Modal Detail
   const [activeModalId, setActiveModalId] = useState(null);
-  const [modalFormPeminjaman, setModalFormPeminjaman] = useState(null);
-
-  const today = new Date().toISOString().split("T")[0];
-
   const handleCardClick = (aset) => {
     setActiveModalId(aset);
   };
-
   const handleCloseModal = () => {
     setActiveModalId(null);
   };
 
+  // Modal Pinjam
+  const [modalFormPeminjaman, setModalFormPeminjaman] = useState(false);
+  const [pinjamIdBeranda, setPinjamIdBeranda] = useState(null);
+  const [pinjamIdAset, setPinjamIdAset] = useState(null);
+  const [pinjamIdUser, setPinjamIdUser] = useState(null);
+  const [pinjamUnit, setPinjamUnit] = useState(null);
+  const [pinjamPengajuan, setPinjamPengajuan] = useState(null);
+  const [pinjamMulai, setPinjamMulai] = useState(null);
+  const [pinjamSelesai, setPinjamSelesai] = useState(null);
+  const [pinjamAlasan, setPinjamAlasan] = useState("");
+
   const handleFormPeminjaman = () => {
-    setModalFormPeminjaman({
-      noAsset: activeModalId.no_aset,
-      namaAsset: activeModalId.nama,
-      namaKaryawan: users.nama_lengkap,
-      nomorKaryawan: users.no_wa,
-      alamatKaryawan: users.alamat,
-    });
+    setModalFormPeminjaman(true);
+    setPinjamIdBeranda(activeModalId.id_beranda);
+    setPinjamIdAset(activeModalId.id_aset);
+    setPinjamIdUser(users.id);
+    setPinjamUnit(activeModalId.unit);
+    setPinjamPengajuan(today);
   };
-
   const handleCloseForm = () => {
-    setModalFormPeminjaman(null);
+    setModalFormPeminjaman(false);
+    setPinjamAlasan("")
   };
-
-  const handleSubmitForm = (event) => {
-    event.preventDefault();
-    setActiveModalId(null);
-    setModalFormPeminjaman(null);
-    Swal.fire({
-      title: "Berhasil",
-      text: "Aset telah dipinjam.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
-    });
+  const handleSubmitForm = async (e) => {
+    e.preventDefault();
+    setLoadingModal(true);
+    try {
+      const res = await fetch("/api/beranda", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pinjamIdBeranda,
+          pinjamIdAset,
+          pinjamIdUser,
+          pinjamPengajuan,
+          pinjamMulai,
+          pinjamSelesai,
+          pinjamAlasan,
+          pinjamUnit,
+        }),
+      });
+      const result = await res.json();
+      if (res.status == 200) {
+        Swal.fire({
+          title: "Berhasil",
+          text: "Peminjaman berhasil diajukan",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        fetchData();
+        setActiveModalId(null);
+        setModalFormPeminjaman(false);
+        setPinjamAlasan("")
+        console.log(result);
+      } else {
+        Swal.fire({
+          title: "Gagal",
+          text: result.error,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 5000,
+        });
+      }
+      setLoadingModal(false);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: error,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 10000,
+      });
+      setLoadingModal(false);
+      setActiveModalId(null);
+      setModalFormPeminjaman(false);
+      setPinjamAlasan("")
+    }
   };
 
   // akses page lain ketika belum login atau tidak login sebagai karyawan
@@ -79,7 +137,7 @@ export default function PageBeranda() {
       .then((response) => response.json())
       .then((data) => {
         const filteredData = data.find((user) => user.id === tokenCookie.id);
-        setUsers(filteredData); // Menyimpan data ke state
+        setUsers(filteredData);
       })
       .catch((err) => {
         setError(err);
@@ -90,16 +148,18 @@ export default function PageBeranda() {
   const [asets, setAsets] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Fetch data dari API route
+    fetchData();
+  }, []);
+  const fetchData = () => {
     fetch("/api/beranda")
       .then((response) => response.json())
       .then((data) => {
-        setAsets(data); // Menyimpan data ke state
+        setAsets(data);
       })
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  };
 
   // Search
   const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
@@ -154,12 +214,18 @@ export default function PageBeranda() {
           {/* Modal Detail Aset */}
           {activeModalId && (
             <Modal title="Detail" onCloseModal={handleCloseModal}>
-              <img
-                src={activeModalId.gambar}
-                alt="Foto Aset"
-                className="w-full h-[200px] lg:h-[300px] object-contain bg-gray-200 rounded-2xl my-3"
-                loading="lazy"
-              />
+              {!activeModalId.gambar ? (
+                <div className="w-full h-[200px] lg:h-[300px] flex justify-center items-center bg-slate-100 rounded-2xl my-3">
+                  <CiImageOff size={70} />
+                </div>
+              ) : (
+                <img
+                  src={activeModalId.gambar}
+                  alt="Foto Aset"
+                  className="w-full h-[200px] lg:h-[300px] object-cover bg-gray-200 rounded-2xl my-3"
+                  loading="lazy"
+                />
+              )}
               <h3 className="text-xl font-bold mb-3">{activeModalId.nama}</h3>
               <div className="flex gap-1 items-center mb-3">
                 <MdNumbers className="text-orange-500" />
@@ -204,23 +270,23 @@ export default function PageBeranda() {
                   <tbody>
                     <tr>
                       <th>No Aset</th>
-                      <td>{modalFormPeminjaman.noAsset}</td>
+                      <td>{activeModalId.no_aset}</td>
                     </tr>
                     <tr>
                       <th>Nama Aset</th>
-                      <td>{modalFormPeminjaman.namaAsset}</td>
+                      <td>{activeModalId.nama}</td>
                     </tr>
                     <tr>
                       <th>Nama Lengkap</th>
-                      <td>{modalFormPeminjaman.namaKaryawan}</td>
+                      <td>{users.nama_lengkap}</td>
                     </tr>
                     <tr>
                       <th>Nomor WA</th>
-                      <td>{modalFormPeminjaman.nomorKaryawan}</td>
+                      <td>{users.no_wa}</td>
                     </tr>
                     <tr>
                       <th>Alamat</th>
-                      <td>{modalFormPeminjaman.alamatKaryawan}</td>
+                      <td>{users.alamat}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -231,12 +297,12 @@ export default function PageBeranda() {
                       Tanggal Mulai
                     </span>
                     <input
-                      id="mulaiPinjam"
                       type="date"
                       placeholder="Tanggal Mulai"
                       className="input input-bordered input-md w-full focus:outline focus:outline-orange-300"
                       required
                       min={today}
+                      onChange={(e) => setPinjamMulai(e.target.value)}
                     />
                   </label>
 
@@ -245,12 +311,12 @@ export default function PageBeranda() {
                       Tanggal Selesai
                     </span>
                     <input
-                      id="selesaiPinjam"
                       type="date"
                       placeholder="Tanggal Selesai"
                       className="input input-bordered input-md w-full focus:outline focus:outline-orange-300"
                       required
                       min={today}
+                      onChange={(e) => setPinjamSelesai(e.target.value)}
                     />
                   </label>
                 </div>
@@ -261,6 +327,8 @@ export default function PageBeranda() {
                     className="textarea textarea-bordered h-24"
                     placeholder="Isi alasan keperluan"
                     required
+                    value={pinjamAlasan}
+                    onChange={(e) => setPinjamAlasan(e.target.value)}
                   ></textarea>
                 </label>
 
@@ -279,8 +347,8 @@ export default function PageBeranda() {
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
               {filteredAsets.map((aset) => (
                 <CardBeranda
-                  key={aset.id}
-                  cardId={aset.id}
+                  key={aset.id_beranda}
+                  cardId={aset.id_aset}
                   fotoAset={aset.gambar}
                   namaAset={aset.nama}
                   unitAset={aset.unit}
@@ -297,6 +365,9 @@ export default function PageBeranda() {
           )}
         </div>
       </div>
+
+      {/* Modal Loading */}
+      {loadingModal && <ModalLoading />}
     </>
   );
 }

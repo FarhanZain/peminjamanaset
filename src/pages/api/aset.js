@@ -55,7 +55,7 @@ export default async function handler(req, res) {
                 await db.query(`INSERT INTO tbl_beranda (id_aset, stok) VALUES ((SELECT id FROM tbl_aset ORDER BY id DESC LIMIT 1), 'Tersedia')`);
                 res.status(200).json({ message: "Aset berhasil ditambahkan" });
             } catch (error) {
-                res.status(500).json({ error: "Error inserting data" });
+                res.status(500).json({ error: "Gagal menambah aset" });
             }
         });
     }else if (req.method == 'DELETE') {
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
                 await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, unit = ?, lokasi = ?, gambar = ? WHERE id = ?`, [updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedGambar, updatedId]);
                 res.status(200).json({ message: "Aset berhasil diperbarui" });
             } catch (error) {
-                res.status(500).json({ error: "Error updating data" });
+                res.status(500).json({ error: "Gagal memperbarui aset" });
             }
         });
     }else{

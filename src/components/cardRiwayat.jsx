@@ -1,3 +1,5 @@
+import { CiImageOff } from "react-icons/ci";
+
 export default function CardRiwayat(props) {
   const {
     onCardClick,
@@ -14,12 +16,18 @@ export default function CardRiwayat(props) {
         className="flex gap-3 p-2 border cursor-pointer rounded-xl hover:bg-orange-50 hover:border-orange-300"
         onClick={onCardClick}
       >
-        <img
-          src={fotoAset}
-          alt="Foto Aset"
-          className="w-[110px] h-[110px] object-cover bg-gray-200 rounded-lg"
-          loading="lazy"
-        />
+        {!fotoAset ? (
+          <div className="w-[110px] h-[110px] flex justify-center items-center bg-slate-100 rounded-lg">
+            <CiImageOff size={32} />
+          </div>
+        ) : (
+          <img
+            src={fotoAset}
+            alt="Foto Aset"
+            className="w-[110px] h-[110px] object-cover bg-gray-200 rounded-lg"
+            loading="lazy"
+          />
+        )}
         <div>
           <div
             className={`badge badge-outline ${

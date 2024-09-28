@@ -8,6 +8,16 @@ import { useRouter } from "next/router";
 import * as XLSX from "xlsx";
 
 export default function AdminSedangDipinjam() {
+  const formatTanggal = (tanggal) => {
+    const format = new Date(tanggal).toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return format;
+  };
+
   const customStyles = {
     headCells: {
       style: {
@@ -32,6 +42,13 @@ export default function AdminSedangDipinjam() {
       minWidth: "100px",
     },
     {
+      name: "Unit",
+      selector: (row) => row.unit,
+      sortable: true,
+      wrap: true,
+      width: "95px",
+    },
+    {
       name: "Nama Peminjam",
       selector: (row) => row.nama_lengkap,
       sortable: true,
@@ -47,14 +64,14 @@ export default function AdminSedangDipinjam() {
     },
     {
       name: "Tgl Mulai",
-      selector: (row) => row.tgl_mulai,
+      selector: (row) => formatTanggal(row.tgl_mulai),
       sortable: true,
       wrap: true,
       width: "150px",
     },
     {
       name: "Tgl Selesai",
-      selector: (row) => row.tgl_selesai,
+      selector: (row) => formatTanggal(row.tgl_selesai),
       sortable: true,
       wrap: true,
       width: "150px",
@@ -145,8 +162,8 @@ export default function AdminSedangDipinjam() {
       "Nama Aset": pinjam.nama,
       "Nama Peminjam": pinjam.nama_lengkap,
       "No Wa": pinjam.no_wa,
-      "Tanggal Mulai": pinjam.tgl_mulai,
-      "Tanggal Selesai": pinjam.tgl_selesai,
+      "Tanggal Mulai": formatTanggal(pinjam.tgl_mulai),
+      "Tanggal Selesai": formatTanggal(pinjam.tgl_selesai),
       Alasan: pinjam.alasan,
       Status: pinjam.status,
     }));

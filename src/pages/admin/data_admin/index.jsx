@@ -127,13 +127,14 @@ export default function AdminDataAdmin() {
 
   const handleAddAdmin = () => {
     setAddAdmin(true);
+    setUnitAdmin("Yayasan");
   };
   const handleCloseAddAdmin = () => {
     setAddAdmin(false);
     setLevelAdmin("admin");
     setUsernameAdmin("");
     setWaAdmin("");
-    setUnitAdmin("");
+    setUnitAdmin("Yayasan");
   };
 
   const handleSubmitAddAdmin = async (event) => {
@@ -434,7 +435,7 @@ export default function AdminDataAdmin() {
                         type="radio"
                         name="radio-10"
                         className="radio checked:bg-orange-500"
-                        defaultValue={"admin"}
+                        value={"admin"}
                         onChange={(e) => setLevelAdmin(e.target.value)}
                         defaultChecked
                       />
@@ -447,7 +448,7 @@ export default function AdminDataAdmin() {
                         type="radio"
                         name="radio-10"
                         className="radio checked:bg-orange-500"
-                        defaultValue={"superadmin"}
+                        value={"superadmin"}
                         onChange={(e) => setLevelAdmin(e.target.value)}
                       />
                       <span className="label-text">Superadmin</span>
@@ -465,7 +466,7 @@ export default function AdminDataAdmin() {
                 type="text"
                 placeholder="Masukkan username"
                 className="input input-bordered w-full"
-                defaultValue={usernameAdmin}
+                value={usernameAdmin}
                 onChange={(e) => setUsernameAdmin(e.target.value)}
                 required
               />
@@ -480,7 +481,7 @@ export default function AdminDataAdmin() {
                   type="number"
                   placeholder="Masukkan nomor wa"
                   className="input input-bordered w-full"
-                  defaultValue={waAdmin}
+                  value={waAdmin}
                   onChange={(e) => setWaAdmin(e.target.value)}
                   required
                 />
@@ -494,7 +495,7 @@ export default function AdminDataAdmin() {
                 </div>
                 <select
                   className="select select-bordered"
-                  defaultValue={unitAdmin}
+                  value={unitAdmin}
                   onChange={(e) => setUnitAdmin(e.target.value)}
                   required
                 >

@@ -9,27 +9,111 @@ import { HiOutlineLocationMarker } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { useRouter } from "next/router";
 import { BsFolderX } from "react-icons/bs";
+import { CiImageOff } from "react-icons/ci";
+import ModalLoading from "@/components/modalLoading";
 
 export default function PageRiwayat() {
   const [activeModalId, setActiveModalId] = useState(null);
-  const [modalKembalikan, setModalKembalikan] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
+
+  const today = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Jakarta",
+  });
+
+  const formatTanggal = (tanggal) => {
+    const format = new Date(tanggal).toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return format;
+  };
+
+  // Modal Detail
+  const [idRiwayat, setIdRiwayat] = useState(null);
+  const [idAset, setIdAset] = useState(null);
+  const [unitAset, setUnitAset] = useState(null);
+  const [tglPengembalian, setTglPengembalian] = useState(null);
 
   const handleClickCard = (aset) => {
     setActiveModalId(aset);
+    setIdRiwayat(aset.id_riwayat);
+    setIdAset(aset.id_aset);
+    setUnitAset(aset.unit);
+    setTglPengembalian(today);
   };
-
   const handleCloseModal = () => {
     setActiveModalId(null);
   };
 
+  // Modal Kembalikan
   const handleKembalikan = () => {
-    setModalKembalikan(true);
+    Swal.fire({
+      title: "Apakah kamu yakin ?",
+      text: `ingin mengembalikan aset yang dipinjam`,
+      icon: "warning",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonColor: "#FF5861",
+      cancelButtonColor: "#d9d9d9",
+      confirmButtonText: "Ya",
+      cancelButtonText: "Tidak",
+      allowOutsideClick: false,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoadingModal(true);
+        try {
+          const res = await fetch("/api/riwayat", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              idRiwayat,
+              idAset,
+              unitAset,
+              tglPengembalian,
+            }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: "Peminjaman berhasil dibatalkan",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            setActiveModalId(null);
+            console.log(result);
+          } else {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 5000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+          setActiveModalId(null);
+        }
+      }
+    });
   };
 
-  const handleCloseKembalikan = () => {
-    setModalKembalikan(false);
-  };
-
+  // Modal Batalkan
   const handleBatalkan = () => {
     Swal.fire({
       title: "Apakah kamu yakin ?",
@@ -42,30 +126,55 @@ export default function PageRiwayat() {
       confirmButtonText: "Ya",
       cancelButtonText: "Tidak",
       allowOutsideClick: false,
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Berhasil",
-          text: "Peminjaman telah dibatalkan.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-        setActiveModalId(null);
+        setLoadingModal(true);
+        try {
+          const res = await fetch("/api/beranda", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              idRiwayat,
+              idAset,
+              unitAset,
+            }),
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: "Peminjaman berhasil dibatalkan",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            setActiveModalId(null);
+            console.log(result);
+          } else {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 5000,
+            });
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setLoadingModal(false);
+          setActiveModalId(null);
+        }
       }
-    });
-  };
-
-  const handleSubmitKembalikan = (event) => {
-    event.preventDefault();
-    setActiveModalId(null);
-    setModalKembalikan(false);
-    Swal.fire({
-      title: "Berhasil",
-      text: "Aset telah dikembalikan.",
-      icon: "success",
-      showConfirmButton: false,
-      timer: 2000,
     });
   };
 
@@ -92,16 +201,18 @@ export default function PageRiwayat() {
   const [asets, setAsets] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Fetch data dari API route
+    fetchData();
+  }, []);
+  const fetchData = () => {
     fetch("/api/riwayat")
       .then((response) => response.json())
       .then((data) => {
-        setAsets(data); // Menyimpan data ke state
+        setAsets(data);
       })
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  };
 
   // Search
   const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
@@ -156,12 +267,18 @@ export default function PageRiwayat() {
           {/* Modal Detail Aset */}
           {activeModalId && (
             <Modal title="Detail" onCloseModal={handleCloseModal}>
-              <img
-                src={activeModalId.gambar}
-                alt="Foto Aset"
-                className="w-full h-[200px] lg:h-[300px] object-contain bg-gray-200 rounded-2xl my-3"
-                loading="lazy"
-              />
+              {!activeModalId.gambar ? (
+                <div className="w-full h-[200px] lg:h-[300px] flex justify-center items-center bg-slate-100 rounded-2xl my-3">
+                  <CiImageOff size={70} />
+                </div>
+              ) : (
+                <img
+                  src={activeModalId.gambar}
+                  alt="Foto Aset"
+                  className="w-full h-[200px] lg:h-[300px] object-cover bg-gray-200 rounded-2xl my-3"
+                  loading="lazy"
+                />
+              )}
               <h3 className="text-xl font-bold mb-3">{activeModalId.nama}</h3>
               <div
                 className={`badge badge-outline mb-4 ${
@@ -201,7 +318,8 @@ export default function PageRiwayat() {
                   Masa Pinjam
                 </p>
                 <p className="text-sm md:text-base mt-2">
-                  {activeModalId.tgl_mulai} - {activeModalId.tgl_selesai}
+                  {formatTanggal(activeModalId.tgl_mulai)} -{" "}
+                  {formatTanggal(activeModalId.tgl_selesai)}
                 </p>
               </div>
               <div className="flex justify-between mt-2">
@@ -212,7 +330,7 @@ export default function PageRiwayat() {
                   <p className="text-sm md:text-base mt-2">
                     {activeModalId.tgl_pengajuan == null
                       ? "-"
-                      : activeModalId.tgl_pengajuan}
+                      : formatTanggal(activeModalId.tgl_pengajuan)}
                   </p>
                 </div>
                 <div className="mt-2">
@@ -222,7 +340,7 @@ export default function PageRiwayat() {
                   <p className="text-sm md:text-base mt-2">
                     {activeModalId.tgl_pengembalian == null
                       ? "-"
-                      : activeModalId.tgl_pengembalian}
+                      : formatTanggal(activeModalId.tgl_pengembalian)}
                   </p>
                 </div>
               </div>
@@ -256,53 +374,18 @@ export default function PageRiwayat() {
             </Modal>
           )}
 
-          {/* Modal Kembalikan Aset */}
-          {modalKembalikan && (
-            <Modal
-              title="Kembalikan Peminjaman"
-              onCloseModal={handleCloseKembalikan}
-            >
-              <form
-                className="mt-4"
-                action=""
-                onSubmit={handleSubmitKembalikan}
-              >
-                <input
-                  type="file"
-                  className="file-input file-input-bordered w-full"
-                  required
-                  accept=".jpg, .jpeg, .png"
-                />
-                <p className="mt-2 text-error">
-                  *Masukkan foto aset sesuai dengan tempat asalnya
-                </p>
-                <div className="flex justify-between mt-4">
-                  <button className="btn" onClick={handleCloseKembalikan}>
-                    Batal
-                  </button>
-                  <button
-                    className="btn bg-orange-500 text-white hover:bg-orange-600"
-                    type="submit"
-                  >
-                    Kirim
-                  </button>
-                </div>
-              </form>
-            </Modal>
-          )}
-
           {/* Card Item Aset */}
           {filteredAsets.length > 0 ? (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
               {filteredAsets.map((aset) => (
                 <CardRiwayat
-                  key={aset.id}
+                  key={aset.id_riwayat}
                   fotoAset={aset.gambar}
                   namaAset={aset.nama}
                   unitAset={aset.unit}
                   statusAset={aset.status}
-                  tglMulai={aset.tgl_mulai}
-                  tglSelesai={aset.tgl_selesai}
+                  tglMulai={formatTanggal(aset.tgl_mulai)}
+                  tglSelesai={formatTanggal(aset.tgl_selesai)}
                   onCardClick={() => handleClickCard(aset)}
                 ></CardRiwayat>
               ))}
@@ -315,6 +398,9 @@ export default function PageRiwayat() {
           )}
         </div>
       </div>
+
+      {/* Modal Loading */}
+      {loadingModal && <ModalLoading />}
     </>
   );
 }
