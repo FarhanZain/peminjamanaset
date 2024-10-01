@@ -3,7 +3,7 @@ import db from '../../lib/db';
 export default async function handler(req, res) {
     if (req.method == 'GET') {
         try {
-            const [rows] = await db.query('SELECT r.*, a.nama, a.unit, u.nama_lengkap, u.no_wa FROM tbl_riwayat r JOIN tbl_aset a ON r.id_aset = a.id JOIN tbl_user u ON r.id_user = u.id ORDER BY r.tgl_pengajuan DESC');
+            const [rows] = await db.query('SELECT r.*, a.nama, a.unit, u.nama_lengkap, u.no_wa FROM tbl_riwayat r JOIN tbl_aset a ON r.id_aset = a.id JOIN tbl_user u ON r.id_user = u.id ORDER BY r.tgl_pengajuan ASC');
             res.status(200).json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Gagal fetching data' });

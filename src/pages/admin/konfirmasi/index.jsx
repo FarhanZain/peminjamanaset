@@ -9,6 +9,7 @@ import ModalLoading from "@/components/modalLoading";
 
 export default function AdminKonfirmasi() {
   const [loadingModal, setLoadingModal] = useState(false);
+  const [userUnit, setUserUnit] = useState(null);
 
   const formatTanggal = (tanggal) => {
     const format = new Date(tanggal).toLocaleDateString("id-ID", {
@@ -119,15 +120,25 @@ export default function AdminKonfirmasi() {
   const [pinjams, setPinjams] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
+    if (userUnit) {
+      fetchData();
+    }
     fetchData();
-  }, []);
+  }, [userUnit]);
   const fetchData = () => {
     fetch("/api/sedangPinjam")
       .then((response) => response.json())
       .then((data) => {
-        const filteredData = data.filter(
-          (pinjaman) => pinjaman.status === "Menunggu Konfirmasi"
-        );
+        const filteredData = data.filter((pinjaman) => {
+          if (userUnit) {
+            return (
+              pinjaman.status === "Menunggu Konfirmasi" &&
+              pinjaman.unit === userUnit
+            );
+          } else {
+            return pinjaman.status === "Menunggu Konfirmasi";
+          }
+        });
         setPinjams(filteredData);
       })
       .catch((err) => {
@@ -191,7 +202,35 @@ export default function AdminKonfirmasi() {
               timer: 2000,
             });
             fetchData();
-            console.log(result);
+            // result.forEach(async (target) => {
+            //   try {
+            //     const data = new FormData();
+            //     data.append("target", `0${target.no_wa}`);
+            //     data.append(
+            //       "message",
+            //       `Halo ${row.nama_lengkap}, peminjaman aset ${row.nama} *_telah disetujui_* oleh admin, selamat menggunakan dan jaga aset dengan baik ya. Terima kasih.`
+            //     );
+            //     data.append("delay", "0");
+            //     data.append("countryCode", "62");
+
+            //     const resWa = await fetch("https://api.fonnte.com/send", {
+            //       method: "POST",
+            //       mode: "cors",
+            //       headers: new Headers({
+            //         Authorization: "pVHcLp66otGgrACBuCWm",
+            //       }),
+            //       body: data,
+            //     });
+            //     const waResult = await resWa.json();
+            //     if (waResult.status) {
+            //       console.log(`Pesan berhasil dikirim ke Admin`);
+            //     } else {
+            //       console.log(`Gagal mengirim pesan ke Admin`);
+            //     }
+            //   } catch (error) {
+            //     console.log(error);
+            //   }
+            // });
           } else {
             Swal.fire({
               title: "Gagal",
@@ -248,13 +287,41 @@ export default function AdminKonfirmasi() {
           if (res.status == 200) {
             Swal.fire({
               title: "Berhasil",
-              text: "Peminjaman berhasil disetujui",
+              text: "Peminjaman berhasil ditolak",
               icon: "success",
               showConfirmButton: false,
               timer: 2000,
             });
             fetchData();
-            console.log(result);
+            // result.forEach(async (target) => {
+            //   try {
+            //     const data = new FormData();
+            //     data.append("target", `0${target.no_wa}`);
+            //     data.append(
+            //       "message",
+            //       `Halo ${row.nama_lengkap}, peminjaman aset ${row.nama} *_telah ditolak_* oleh admin, mohon maaf tidak bisa meminjam aset ini. Terima kasih.`
+            //     );
+            //     data.append("delay", "0");
+            //     data.append("countryCode", "62");
+
+            //     const resWa = await fetch("https://api.fonnte.com/send", {
+            //       method: "POST",
+            //       mode: "cors",
+            //       headers: new Headers({
+            //         Authorization: "pVHcLp66otGgrACBuCWm",
+            //       }),
+            //       body: data,
+            //     });
+            //     const waResult = await resWa.json();
+            //     if (waResult.status) {
+            //       console.log(`Pesan berhasil dikirim ke Admin`);
+            //     } else {
+            //       console.log(`Gagal mengirim pesan ke Admin`);
+            //     }
+            //   } catch (error) {
+            //     console.log(error);
+            //   }
+            // });
           } else {
             Swal.fire({
               title: "Gagal",
@@ -285,6 +352,7 @@ export default function AdminKonfirmasi() {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
+      setUserUnit(data.unit);
 
       if (
         res.status !== 200 ||

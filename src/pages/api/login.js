@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
             if (user.status === "Aktif") {
                 // Buat token JWT
-                const token = jwt.sign({ id: user.id, role: user.role }, '!iniTokenRAHASIApeminjaman@set?', { expiresIn: '30d' });
+                const token = jwt.sign({ id: user.id, role: user.role, unit: user.unit }, '!iniTokenRAHASIApeminjaman@set?', { expiresIn: '30d' });
     
                 // Set cookie dengan token
                 res.setHeader('Set-Cookie', serialize('auth', token, {

@@ -103,7 +103,9 @@ const DropdownUser = () => {
           <span className="block text-sm font-medium text-black">
             {users.username}
           </span>
-          <span className="block text-xs mt-1">{users.role}</span>
+          <span className="block text-xs mt-1">
+            {users.role} - {users.unit == null ? "Semua Unit" : users.unit}
+          </span>
         </span>
 
         <span className="w-12 h-12 flex justify-center items-center rounded-full">

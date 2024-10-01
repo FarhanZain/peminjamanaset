@@ -38,6 +38,9 @@ export default function PageBeranda() {
   const [pinjamMulai, setPinjamMulai] = useState(null);
   const [pinjamSelesai, setPinjamSelesai] = useState(null);
   const [pinjamAlasan, setPinjamAlasan] = useState("");
+  //
+  const [namaWa, setNamaWa] = useState(null);
+  const [asetWa, setAsetWa] = useState(null);
 
   const handleFormPeminjaman = () => {
     setModalFormPeminjaman(true);
@@ -46,10 +49,13 @@ export default function PageBeranda() {
     setPinjamIdUser(users.id);
     setPinjamUnit(activeModalId.unit);
     setPinjamPengajuan(today);
+    //
+    setNamaWa(users.nama_lengkap);
+    setAsetWa(activeModalId.nama);
   };
   const handleCloseForm = () => {
     setModalFormPeminjaman(false);
-    setPinjamAlasan("")
+    setPinjamAlasan("");
   };
   const handleSubmitForm = async (e) => {
     e.preventDefault();
@@ -83,8 +89,36 @@ export default function PageBeranda() {
         fetchData();
         setActiveModalId(null);
         setModalFormPeminjaman(false);
-        setPinjamAlasan("")
-        console.log(result);
+        setPinjamAlasan("");
+        // result.forEach(async (target) => {
+        //   try {
+        //     const data = new FormData();
+        //     data.append("target", `0${target.no_wa}`);
+        //     data.append(
+        //       "message",
+        //       `Halo Admin, aset ${pinjamIdAset} - ${asetWa} *_Ingin dipinjam_* oleh ${namaWa}, segera berikan konfirmasi di dashboard admin. Terima kasih.`
+        //     );
+        //     data.append("delay", "0");
+        //     data.append("countryCode", "62");
+
+        //     const resWa = await fetch("https://api.fonnte.com/send", {
+        //       method: "POST",
+        //       mode: "cors",
+        //       headers: new Headers({
+        //         Authorization: "pVHcLp66otGgrACBuCWm",
+        //       }),
+        //       body: data,
+        //     });
+        //     const waResult = await resWa.json();
+        //     if (waResult.status) {
+        //       console.log(`Pesan berhasil dikirim ke Admin`);
+        //     } else {
+        //       console.log(`Gagal mengirim pesan ke Admin`);
+        //     }
+        //   } catch (error) {
+        //     console.log(error);
+        //   }
+        // });
       } else {
         Swal.fire({
           title: "Gagal",
@@ -106,7 +140,7 @@ export default function PageBeranda() {
       setLoadingModal(false);
       setActiveModalId(null);
       setModalFormPeminjaman(false);
-      setPinjamAlasan("")
+      setPinjamAlasan("");
     }
   };
 

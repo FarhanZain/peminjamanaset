@@ -253,6 +253,10 @@ export default function AdminKonfirmasi() {
                   <td>{users.username}</td>
                 </tr>
                 <tr>
+                  <th>Unit</th>
+                  <td>{users.unit}</td>
+                </tr>
+                <tr>
                   <th>Nomor Whatsapp</th>
                   <td>{users.no_wa == null ? "-" : users.no_wa}</td>
                 </tr>

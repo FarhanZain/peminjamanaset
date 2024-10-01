@@ -35,6 +35,9 @@ export default function PageRiwayat() {
   const [idAset, setIdAset] = useState(null);
   const [unitAset, setUnitAset] = useState(null);
   const [tglPengembalian, setTglPengembalian] = useState(null);
+  //
+  const [namaWa, setNamaWa] = useState(null);
+  const [asetWa, setAsetWa] = useState(null);
 
   const handleClickCard = (aset) => {
     setActiveModalId(aset);
@@ -42,6 +45,9 @@ export default function PageRiwayat() {
     setIdAset(aset.id_aset);
     setUnitAset(aset.unit);
     setTglPengembalian(today);
+    //
+    setNamaWa(users.nama_lengkap);
+    setAsetWa(aset.nama);
   };
   const handleCloseModal = () => {
     setActiveModalId(null);
@@ -80,14 +86,42 @@ export default function PageRiwayat() {
           if (res.status == 200) {
             Swal.fire({
               title: "Berhasil",
-              text: "Peminjaman berhasil dibatalkan",
+              text: "Peminjaman berhasil dikembalikan",
               icon: "success",
               showConfirmButton: false,
               timer: 2000,
             });
             fetchData();
             setActiveModalId(null);
-            console.log(result);
+            // result.forEach(async (target) => {
+            //   try {
+            //     const data = new FormData();
+            //     data.append("target", `0${target.no_wa}`);
+            //     data.append(
+            //       "message",
+            //       `Halo Admin, aset ${idAset} - ${asetWa} *_telah dikembalikan_* oleh ${namaWa}. Terima kasih.`
+            //     );
+            //     data.append("delay", "0");
+            //     data.append("countryCode", "62");
+
+            //     const resWa = await fetch("https://api.fonnte.com/send", {
+            //       method: "POST",
+            //       mode: "cors",
+            //       headers: new Headers({
+            //         Authorization: "pVHcLp66otGgrACBuCWm",
+            //       }),
+            //       body: data,
+            //     });
+            //     const waResult = await resWa.json();
+            //     if (waResult.status) {
+            //       console.log(`Pesan berhasil dikirim ke Admin`);
+            //     } else {
+            //       console.log(`Gagal mengirim pesan ke Admin`);
+            //     }
+            //   } catch (error) {
+            //     console.log(error);
+            //   }
+            // });
           } else {
             Swal.fire({
               title: "Gagal",
@@ -152,7 +186,36 @@ export default function PageRiwayat() {
             });
             fetchData();
             setActiveModalId(null);
-            console.log(result);
+            // result.forEach(async (target) => {
+            //   try {
+            //     const data = new FormData();
+            //     data.append("target", `0${target.no_wa}`);
+            //     data.append(
+            //       "message",
+            //       `Halo Admin, aset ${idAset} - ${asetWa} *_Batal dipinjam_* oleh ${namaWa}. Terima kasih.`
+            //     );
+            //     data.append("delay", "0");
+            //     data.append("countryCode", "62");
+
+            //     const resWa = await fetch("https://api.fonnte.com/send", {
+            //       method: "POST",
+            //       mode: "cors",
+            //       headers: new Headers({
+            //         Authorization: "pVHcLp66otGgrACBuCWm",
+            //       }),
+            //       body: data,
+            //     });
+            //     const waResult = await resWa.json();
+            //     if (waResult.status) {
+            //       console.log(`Pesan berhasil dikirim ke Admin`);
+            //     } else {
+            //       console.log(`Gagal mengirim pesan ke Admin`);
+            //     }
+            //   } catch (error) {
+            //     console.log(error);
+            //   }
+            // });
+            // console.log(result);
           } else {
             Swal.fire({
               title: "Gagal",
@@ -196,6 +259,21 @@ export default function PageRiwayat() {
 
     checkAuth();
   }, [router]);
+
+  // fetch data diri
+  const [users, setUsers] = useState({});
+  useEffect(() => {
+    // Fetch data dari API route
+    fetch("/api/akunKaryawan")
+      .then((response) => response.json())
+      .then((data) => {
+        const filteredData = data.find((user) => user.id === tokenCookie.id);
+        setUsers(filteredData);
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  }, []);
 
   // fetch data aset
   const [asets, setAsets] = useState([]);
@@ -314,6 +392,14 @@ export default function PageRiwayat() {
                 </div>
               </div>
               <div className="mt-2">
+                <p className="text-sm md:text-base font-semibold">
+                  Alasan Meminjam
+                </p>
+                <p className="text-sm md:text-base mt-2">
+                  {activeModalId.alasan}
+                </p>
+              </div>
+              <div className="mt-4">
                 <p className="text-sm md:text-base font-semibold">
                   Masa Pinjam
                 </p>

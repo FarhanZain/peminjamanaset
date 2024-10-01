@@ -14,6 +14,7 @@ import ModalLoading from "@/components/modalLoading";
 
 export default function AdminDataAset() {
   const [loadingModal, setLoadingModal] = useState(false);
+  const [userUnit, setUserUnit] = useState(null);
 
   const customStyles = {
     headCells: {
@@ -103,13 +104,21 @@ export default function AdminDataAset() {
   const [asets, setAsets] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
+    if (userUnit) {
+      fetchData();
+    }
     fetchData();
-  }, []);
+  }, [userUnit]);
   const fetchData = () => {
     fetch("/api/aset")
       .then((response) => response.json())
       .then((data) => {
-        setAsets(data);
+        if (userUnit) {
+          const filteredData = data.filter((aset) => aset.unit === userUnit);
+          setAsets(filteredData);
+        } else {
+          setAsets(data);
+        }
       })
       .catch((err) => {
         setError(err);
@@ -255,18 +264,21 @@ export default function AdminDataAset() {
   const [addByForm, setAddByForm] = useState(false);
   const [nomorAset, setNomorAset] = useState(null);
   const [namaAset, setNamaAset] = useState(null);
-  const [unitAset, setUnitAset] = useState("Yayasan");
+  const [unitAset, setUnitAset] = useState(
+    userUnit == null ? "Yayasan" : userUnit
+  );
   const [lokasiAset, setLokasiAset] = useState(null);
   const [gambarAset, setGambarAset] = useState(null);
 
   const handleAddByForm = () => {
     setAddByForm(true);
+    setUnitAset(userUnit == null ? "Yayasan" : userUnit);
   };
   const handleCloseAddByForm = () => {
     setAddByForm(false);
     setNomorAset("");
     setNamaAset("");
-    setUnitAset("Yayasan");
+    setUnitAset(userUnit == null ? "Yayasan" : userUnit);
     setLokasiAset("");
     setGambarAset(null);
   };
@@ -298,7 +310,7 @@ export default function AdminDataAset() {
         setAddByForm(false);
         setNomorAset("");
         setNamaAset("");
-        setUnitAset("Yayasan");
+        setUnitAset(userUnit == null ? "Yayasan" : userUnit);
         setLokasiAset("");
         setGambarAset(null);
       } else if (res.status == 409) {
@@ -320,7 +332,7 @@ export default function AdminDataAset() {
         setAddByForm(false);
         setNomorAset("");
         setNamaAset("");
-        setUnitAset("Yayasan");
+        setUnitAset(userUnit == null ? "Yayasan" : userUnit);
         setLokasiAset("");
         setGambarAset(null);
       }
@@ -452,6 +464,7 @@ export default function AdminDataAset() {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
+      setUserUnit(data.unit);
 
       if (
         res.status !== 200 ||
@@ -596,13 +609,25 @@ export default function AdminDataAset() {
                 onChange={(e) => setUnitAset(e.target.value)}
                 required
               >
-                <option value="Yayasan" selected>
-                  Unit Yayasan
-                </option>
-                <option value="SMA">Unit SMA</option>
-                <option value="SMP">Unit SMP</option>
-                <option value="SD">Unit SD</option>
-                <option value="TK">Unit TK</option>
+                {userUnit == "Yayasan" ? (
+                  <option value="Yayasan">Unit Yayasan</option>
+                ) : userUnit == "SMA" ? (
+                  <option value="SMA">Unit SMA</option>
+                ) : userUnit == "SMP" ? (
+                  <option value="SMP">Unit SMP</option>
+                ) : userUnit == "SD" ? (
+                  <option value="SD">Unit SD</option>
+                ) : userUnit == "TK" ? (
+                  <option value="TK">Unit TK</option>
+                ) : (
+                  <>
+                    <option value="Yayasan">Unit Yayasan</option>
+                    <option value="SMA">Unit SMA</option>
+                    <option value="SMP">Unit SMP</option>
+                    <option value="SD">Unit SD</option>
+                    <option value="TK">Unit TK</option>
+                  </>
+                )}
               </select>
             </label>
             {/* Lokasi */}
@@ -689,11 +714,25 @@ export default function AdminDataAset() {
                 onChange={(e) => setEditUnit(e.target.value)}
                 required
               >
-                <option value="Yayasan">Unit Yayasan</option>
-                <option value="SMA">Unit SMA</option>
-                <option value="SMP">Unit SMP</option>
-                <option value="SD">Unit SD</option>
-                <option value="TK">Unit TK</option>
+                {userUnit == "Yayasan" ? (
+                  <option value="Yayasan">Unit Yayasan</option>
+                ) : userUnit == "SMA" ? (
+                  <option value="SMA">Unit SMA</option>
+                ) : userUnit == "SMP" ? (
+                  <option value="SMP">Unit SMP</option>
+                ) : userUnit == "SD" ? (
+                  <option value="SD">Unit SD</option>
+                ) : userUnit == "TK" ? (
+                  <option value="TK">Unit TK</option>
+                ) : (
+                  <>
+                    <option value="Yayasan">Unit Yayasan</option>
+                    <option value="SMA">Unit SMA</option>
+                    <option value="SMP">Unit SMP</option>
+                    <option value="SD">Unit SD</option>
+                    <option value="TK">Unit TK</option>
+                  </>
+                )}
               </select>
             </label>
             {/* Lokasi */}
