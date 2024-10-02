@@ -75,14 +75,42 @@ export default function AdminDataAset() {
         ),
       sortable: true,
       wrap: true,
-      width: "200px",
+      minWidth: "120px",
+    },
+    {
+      name: "Kategori",
+      selector: (row) => row.kategori,
+      sortable: true,
+      wrap: true,
+      minWidth: "100px",
+    },
+    {
+      name: "Status",
+      cell: (row) => (
+        <p
+          className={`${
+            row.status_aset == "Tersedia" ? "text-success" : "text-error"
+          }`}
+        >
+          {row.status_aset}
+        </p>
+      ),
+      sortable: true,
+      wrap: true,
+      minWidth: "100px",
     },
     {
       name: "Aksi",
       button: true,
-      minWidth: "150px",
+      minWidth: "210px",
       cell: (row) => (
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+          <button
+            className="btn btn-outline btn-info btn-sm"
+            onClick={() => handleEditStatus(row)}
+          >
+            Status
+          </button>
           <button
             className="btn btn-outline btn-warning btn-sm"
             onClick={() => handleEditByForm(row)}
@@ -102,12 +130,18 @@ export default function AdminDataAset() {
 
   // fetch data aset
   const [asets, setAsets] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [kategoris, setKategoris] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
     if (userUnit) {
       fetchData();
+      fetchDataUnit();
+      fetchDataKategori();
     }
     fetchData();
+    fetchDataUnit();
+    fetchDataKategori();
   }, [userUnit]);
   const fetchData = () => {
     fetch("/api/aset")
@@ -119,6 +153,26 @@ export default function AdminDataAset() {
         } else {
           setAsets(data);
         }
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+  const fetchDataUnit = () => {
+    fetch("/api/unit")
+      .then((response) => response.json())
+      .then((data) => {
+        setUnits(data);
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+  const fetchDataKategori = () => {
+    fetch("/api/kategori")
+      .then((response) => response.json())
+      .then((data) => {
+        setKategoris(data);
       })
       .catch((err) => {
         setError(err);
@@ -264,23 +318,34 @@ export default function AdminDataAset() {
   const [addByForm, setAddByForm] = useState(false);
   const [nomorAset, setNomorAset] = useState(null);
   const [namaAset, setNamaAset] = useState(null);
-  const [unitAset, setUnitAset] = useState(
-    userUnit == null ? "Yayasan" : userUnit
-  );
+  const [unitAset, setUnitAset] = useState(null);
   const [lokasiAset, setLokasiAset] = useState(null);
   const [gambarAset, setGambarAset] = useState(null);
+  const [kategoriAset, setKategoriAset] = useState(null);
+  const [detailAset, setDetailAset] = useState(null);
 
   const handleAddByForm = () => {
     setAddByForm(true);
-    setUnitAset(userUnit == null ? "Yayasan" : userUnit);
+    setUnitAset(
+      userUnit == null
+        ? units[0].id
+        : units.find((un) => un.unit === userUnit).id
+    );
+    setKategoriAset(kategoris[0].id);
   };
   const handleCloseAddByForm = () => {
     setAddByForm(false);
     setNomorAset("");
     setNamaAset("");
-    setUnitAset(userUnit == null ? "Yayasan" : userUnit);
+    setUnitAset(
+      userUnit == null
+        ? units[0].id
+        : units.find((un) => un.unit === userUnit).id
+    );
     setLokasiAset("");
     setGambarAset(null);
+    setDetailAset("");
+    setKategoriAset(kategoris[0].id);
   };
   const handleSubmitAddByForm = async (event) => {
     event.preventDefault();
@@ -292,6 +357,8 @@ export default function AdminDataAset() {
       formData.append("unitAset", unitAset);
       formData.append("lokasiAset", lokasiAset);
       formData.append("gambarAset", gambarAset);
+      formData.append("kategoriAset", kategoriAset);
+      formData.append("detailAset", detailAset);
 
       const res = await fetch("/api/aset", {
         method: "POST",
@@ -310,18 +377,16 @@ export default function AdminDataAset() {
         setAddByForm(false);
         setNomorAset("");
         setNamaAset("");
-        setUnitAset(userUnit == null ? "Yayasan" : userUnit);
+        setUnitAset(
+          userUnit == null
+            ? units[0].id
+            : units.find((un) => un.unit === userUnit).id
+        );
         setLokasiAset("");
         setGambarAset(null);
-      } else if (res.status == 409) {
-        Swal.fire({
-          title: "Gagal",
-          text: result.error,
-          icon: "error",
-          showConfirmButton: false,
-          timer: 2000,
-        });
-      } else if (res.status == 500) {
+        setDetailAset("");
+        setKategoriAset(kategoris[0].id);
+      } else {
         Swal.fire({
           title: "Gagal",
           text: result.error,
@@ -332,9 +397,15 @@ export default function AdminDataAset() {
         setAddByForm(false);
         setNomorAset("");
         setNamaAset("");
-        setUnitAset(userUnit == null ? "Yayasan" : userUnit);
+        setUnitAset(
+          userUnit == null
+            ? units[0].id
+            : units.find((un) => un.unit === userUnit).id
+        );
         setLokasiAset("");
         setGambarAset(null);
+        setDetailAset("");
+        setKategoriAset(kategoris[0].id);
       }
       setLoadingModal(false);
     } catch (error) {
@@ -367,14 +438,18 @@ export default function AdminDataAset() {
   const [editUnit, setEditUnit] = useState(null);
   const [editLokasi, setEditLokasi] = useState(null);
   const [editGambar, setEditGambar] = useState(null);
+  const [editKategori, setEditKategori] = useState(null);
+  const [editDetail, setEditDetail] = useState(null);
 
   const handleEditByForm = (row) => {
     setEditByForm(true);
     setEditId(row.id);
     setEditNomor(row.no_aset);
     setEditNama(row.nama);
-    setEditUnit(row.unit);
+    setEditUnit(row.id_unit);
     setEditLokasi(row.lokasi);
+    setEditKategori(row.id_kategori);
+    setEditDetail(row.detail);
   };
   const handleCloseEditByForm = () => {
     setEditByForm(false);
@@ -403,6 +478,8 @@ export default function AdminDataAset() {
           formData.append("updatedUnit", editUnit);
           formData.append("updatedLokasi", editLokasi);
           formData.append("updatedGambar", editGambar);
+          formData.append("updatedKategori", editKategori);
+          formData.append("updatedDetail", editDetail);
 
           const res = await fetch("/api/aset", {
             method: "PUT",
@@ -420,16 +497,7 @@ export default function AdminDataAset() {
             fetchData();
             setEditByForm(false);
             setEditGambar(null);
-          } else if (res.status == 409) {
-            Swal.fire({
-              title: "Gagal",
-              text: result.error,
-              icon: "error",
-              showConfirmButton: false,
-              timer: 2000,
-            });
-            setEditGambar(null);
-          } else if (res.status == 500) {
+          } else {
             Swal.fire({
               title: "Gagal",
               text: result.error,
@@ -453,6 +521,81 @@ export default function AdminDataAset() {
           setEditByForm(false);
           setLoadingModal(false);
           setEditGambar(null);
+        }
+      }
+    });
+  };
+
+  // Edit Status
+  const [editStatus, setEditStatus] = useState(false);
+  const [editIdStatus, setEditIdStatus] = useState(null);
+  const [editStatusAset, setEditStatusAset] = useState(null);
+
+  const handleEditStatus = (row) => {
+    setEditStatus(true);
+    setEditIdStatus(row.id);
+    setEditStatusAset(row.status_aset);
+  };
+  const handleCloseEditStatus = () => {
+    setEditStatus(false);
+  };
+  const handleSubmitEditStatus = (event) => {
+    event.preventDefault();
+    Swal.fire({
+      title: "Apakah kamu yakin ?",
+      text: `ingin merubah status aset`,
+      icon: "warning",
+      showCancelButton: true,
+      reverseButtons: true,
+      confirmButtonColor: "#FF5861",
+      cancelButtonColor: "#d9d9d9",
+      confirmButtonText: "Ya",
+      cancelButtonText: "Batal",
+      allowOutsideClick: false,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoadingModal(true);
+        try {
+          const formData = new FormData();
+          formData.append("updatedId", editIdStatus);
+          formData.append("updatedStatus", editStatusAset);
+
+          const res = await fetch("/api/aset", {
+            method: "PATCH",
+            body: formData,
+          });
+          const result = await res.json();
+          if (res.status == 200) {
+            Swal.fire({
+              title: "Berhasil",
+              text: result.message,
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            setEditStatus(false);
+          } else {
+            Swal.fire({
+              title: "Gagal",
+              text: result.error,
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            setEditStatus(false);
+          }
+          setLoadingModal(false);
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: error,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          setEditStatus(false);
+          setLoadingModal(false);
         }
       }
     });
@@ -609,25 +752,19 @@ export default function AdminDataAset() {
                 onChange={(e) => setUnitAset(e.target.value)}
                 required
               >
-                {userUnit == "Yayasan" ? (
-                  <option value="Yayasan">Unit Yayasan</option>
-                ) : userUnit == "SMA" ? (
-                  <option value="SMA">Unit SMA</option>
-                ) : userUnit == "SMP" ? (
-                  <option value="SMP">Unit SMP</option>
-                ) : userUnit == "SD" ? (
-                  <option value="SD">Unit SD</option>
-                ) : userUnit == "TK" ? (
-                  <option value="TK">Unit TK</option>
-                ) : (
-                  <>
-                    <option value="Yayasan">Unit Yayasan</option>
-                    <option value="SMA">Unit SMA</option>
-                    <option value="SMP">Unit SMP</option>
-                    <option value="SD">Unit SD</option>
-                    <option value="TK">Unit TK</option>
-                  </>
-                )}
+                {userUnit
+                  ? units
+                      .filter((un) => un.unit === userUnit)
+                      .map((un) => (
+                        <option key={un.id} value={un.id}>
+                          {un.unit}
+                        </option>
+                      ))
+                  : units.map((un) => (
+                      <option key={un.id} value={un.id}>
+                        {un.unit}
+                      </option>
+                    ))}
               </select>
             </label>
             {/* Lokasi */}
@@ -643,7 +780,7 @@ export default function AdminDataAset() {
                 required
               ></textarea>
             </label>
-            {/* Gamabr Aset */}
+            {/* Gambar Aset */}
             <label className="form-control w-full mt-2">
               <div className="label">
                 <span className="label-text">Gambar Aset</span>
@@ -654,6 +791,37 @@ export default function AdminDataAset() {
                 accept=".jpg, .jpeg, .png"
                 onChange={(e) => setGambarAset(e.target.files[0])}
               />
+            </label>
+            {/* Kategori Aset */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Kategori Aset</span>
+              </div>
+              <select
+                className="select select-bordered"
+                defaultValue={kategoriAset}
+                onChange={(e) => setKategoriAset(e.target.value)}
+                required
+              >
+                {kategoris.map((ktgri) => (
+                  <option key={ktgri.id} value={ktgri.id}>
+                    {ktgri.kategori}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {/* Detail Aset */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Detail Aset</span>
+              </div>
+              <textarea
+                className="textarea textarea-bordered"
+                placeholder="Masukkan Detail Aset"
+                defaultValue={detailAset}
+                onChange={(e) => setDetailAset(e.target.value)}
+                required
+              ></textarea>
             </label>
             {/* Submit */}
             <div className="flex justify-between mt-8">
@@ -714,25 +882,19 @@ export default function AdminDataAset() {
                 onChange={(e) => setEditUnit(e.target.value)}
                 required
               >
-                {userUnit == "Yayasan" ? (
-                  <option value="Yayasan">Unit Yayasan</option>
-                ) : userUnit == "SMA" ? (
-                  <option value="SMA">Unit SMA</option>
-                ) : userUnit == "SMP" ? (
-                  <option value="SMP">Unit SMP</option>
-                ) : userUnit == "SD" ? (
-                  <option value="SD">Unit SD</option>
-                ) : userUnit == "TK" ? (
-                  <option value="TK">Unit TK</option>
-                ) : (
-                  <>
-                    <option value="Yayasan">Unit Yayasan</option>
-                    <option value="SMA">Unit SMA</option>
-                    <option value="SMP">Unit SMP</option>
-                    <option value="SD">Unit SD</option>
-                    <option value="TK">Unit TK</option>
-                  </>
-                )}
+                {userUnit
+                  ? units
+                      .filter((un) => un.unit === userUnit)
+                      .map((un) => (
+                        <option key={un.id} value={un.id}>
+                          {un.unit}
+                        </option>
+                      ))
+                  : units.map((un) => (
+                      <option key={un.id} value={un.id}>
+                        {un.unit}
+                      </option>
+                    ))}
               </select>
             </label>
             {/* Lokasi */}
@@ -761,9 +923,78 @@ export default function AdminDataAset() {
                 onChange={(e) => setEditGambar(e.target.files[0])}
               />
             </label>
+            {/* Kategori Aset */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Kategori Aset</span>
+              </div>
+              <select
+                className="select select-bordered"
+                defaultValue={editKategori}
+                onChange={(e) => setEditKategori(e.target.value)}
+                required
+              >
+                {kategoris.map((ktgri) => (
+                  <option key={ktgri.id} value={ktgri.id}>
+                    {ktgri.kategori}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {/* Detail Aset */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Detail Aset</span>
+              </div>
+              <textarea
+                className="textarea textarea-bordered"
+                placeholder="Masukkan Detail Aset"
+                onChange={(e) => setEditDetail(e.target.value)}
+                required
+              >
+                {editDetail}
+              </textarea>
+            </label>
             {/* Submit */}
             <div className="flex justify-between mt-8">
               <button className="btn" onClick={handleCloseEditByForm}>
+                Batal
+              </button>
+              <button
+                className="btn bg-orange-500 text-white hover:bg-orange-600"
+                type="submit"
+              >
+                Simpan
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Modal Edit Status */}
+      {editStatus && (
+        <Modal title="Edit Status" onCloseModal={handleCloseEditStatus}>
+          <form className="mt-4" action="" onSubmit={handleSubmitEditStatus}>
+            {/* Status Aset */}
+            <label className="form-control w-full mt-2">
+              <div className="label">
+                <span className="label-text">Kategori Aset</span>
+              </div>
+              <select
+                className="select select-bordered"
+                defaultValue={editStatusAset}
+                onChange={(e) => setEditStatusAset(e.target.value)}
+                required
+              >
+                <option value="Tersedia">Tersedia</option>
+                <option value="Tidak Tersedia">Tidak Tersedia</option>
+                <option value="Sedang Perbaikan">Sedang Perbaikan</option>
+                <option value="Rusak">Rusak</option>
+              </select>
+            </label>
+            {/* Submit */}
+            <div className="flex justify-between mt-8">
+              <button className="btn" onClick={handleCloseEditStatus}>
                 Batal
               </button>
               <button

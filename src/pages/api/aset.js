@@ -27,6 +27,7 @@ const upload = multer({
 const uploadMiddleware = upload.single("gambarAset")
 const updateMiddleware = upload.single("updatedGambar")
 const deleteMiddleware = upload.none()
+const patchMiddleware = upload.none()
 
 export const config = {
     api: {
@@ -37,22 +38,21 @@ export const config = {
 export default async function handler(req, res) {
     if (req.method == 'GET') {
         try {
-            const [rows] = await db.query('SELECT * FROM tbl_aset');
+            const [rows] = await db.query('SELECT a.*, un.id AS id_units, un.unit, k.id AS id_kategoris, k.kategori FROM tbl_aset a JOIN tbl_unit un ON a.id_unit = un.id JOIN tbl_kategori k ON a.id_kategori = k.id');
             res.status(200).json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Error fetching users' });
         }
     }else if (req.method == 'POST') {
         uploadMiddleware(req, res, async () => {
-            const { nomorAset, namaAset, unitAset, lokasiAset } = req.body;
+            const { nomorAset, namaAset, unitAset, lokasiAset, kategoriAset, detailAset } = req.body;
             const gambarAset = req.file ? `/image/${req.file.filename}` : null;
             try {
                 const [checkDuplicate] = await db.query('SELECT no_aset FROM tbl_aset WHERE no_aset = ?', [nomorAset]);
                 if (checkDuplicate.length > 0) {
                     return res.status(409).json({ error: 'Nomor aset sudah digunakan' });
                 }
-                await db.query(`INSERT INTO tbl_aset (no_aset, nama, unit, lokasi, gambar) VALUES (?, ?, ?, ?, ?)`, [nomorAset, namaAset, unitAset, lokasiAset, gambarAset]);
-                await db.query(`INSERT INTO tbl_beranda (id_aset, stok) VALUES ((SELECT id FROM tbl_aset ORDER BY id DESC LIMIT 1), 'Tersedia')`);
+                await db.query(`INSERT INTO tbl_aset (no_aset, nama, id_unit, lokasi, gambar, id_kategori, detail, status_aset) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [nomorAset, namaAset, unitAset, lokasiAset, gambarAset, kategoriAset, detailAset, "Tersedia"]);
                 res.status(200).json({ message: "Aset berhasil ditambahkan" });
             } catch (error) {
                 res.status(500).json({ error: "Gagal menambah aset" });
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
         });
     }else if (req.method == 'PUT') {
         updateMiddleware(req, res, async () => {
-            const { updatedId, updatedNomor, updatedNama, updatedUnit, updatedLokasi } = req.body;
+            const { updatedId, updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedKategori, updatedDetail } = req.body;
             const updatedGambar = req.file ? `/image/${req.file.filename}` : null;
             try {
                 const [pathGambar] = await db.query('SELECT gambar FROM tbl_aset WHERE id = ?', [updatedId]);
@@ -97,10 +97,20 @@ export default async function handler(req, res) {
                 if (checkDuplicate.length > 0) {
                     return res.status(409).json({ error: 'Nomor aset sudah digunakan' });
                 }
-                await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, unit = ?, lokasi = ?, gambar = ? WHERE id = ?`, [updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedGambar, updatedId]);
+                await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, id_unit = ?, lokasi = ?, gambar = ?, id_kategori = ?, detail = ? WHERE id = ?`, [updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedGambar, updatedKategori, updatedDetail, updatedId]);
                 res.status(200).json({ message: "Aset berhasil diperbarui" });
             } catch (error) {
                 res.status(500).json({ error: "Gagal memperbarui aset" });
+            }
+        });
+    }else if (req.method == 'PATCH') {
+        patchMiddleware(req, res, async () => {
+            const { updatedId, updatedStatus } = req.body;
+            try {
+                await db.query(`UPDATE tbl_aset SET status_aset = ? WHERE id = ?`, [updatedStatus, updatedId]);
+                res.status(200).json({ message: "Status Aset berhasil diperbarui" });
+            } catch (error) {
+                res.status(500).json({ error: "Gagal memperbarui status aset" });
             }
         });
     }else{

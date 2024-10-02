@@ -3,7 +3,7 @@ import db from '../../lib/db';
 export default async function handler(req, res) {
     if (req.method == 'GET') {
         try {
-            const [rows] = await db.query('SELECT id, username, no_wa, role, unit FROM tbl_user WHERE role IN ("admin", "superadmin")');
+            const [rows] = await db.query('SELECT un.unit, u.id, u.username, u.no_wa, u.role, u.status FROM tbl_user u LEFT JOIN tbl_unit un ON u.id_unit = un.id WHERE u.role IN ("admin", "superadmin")');
             res.status(200).json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Error fetching users' });

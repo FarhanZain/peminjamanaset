@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 export default async function handler(req, res) {
     if (req.method === 'GET') {
         try {
-            const [rows] = await db.query('SELECT id, username, no_wa, role, unit, status FROM tbl_user WHERE role IN ("admin", "superadmin")');
+            const [rows] = await db.query('SELECT un.unit, u.id, u.username, u.no_wa, u.role, u.status FROM tbl_user u LEFT JOIN tbl_unit un ON u.id_unit = un.id WHERE role IN ("admin", "superadmin")');
             res.status(200).json(rows);
         } catch (error) {
             res.status(500).json({ error: 'Gagal mengambil data' });
@@ -19,8 +19,8 @@ export default async function handler(req, res) {
             if (checkDuplicate.length > 0) {
                 return res.status(409).json({ error: 'Username sudah digunakan' });
             }
-            await db.query('INSERT INTO tbl_user (username, password, no_wa, role, unit, status) VALUES (?, ?, ?, ?, ?, ?)', [usernameAdmin, passwordAdmin, waAdmin, levelAdmin, unitAdmin, "Aktif"]);
-            res.status(201).json({ message: 'Admin berhasil ditambahkan' });
+            await db.query('INSERT INTO tbl_user (username, password, no_wa, role, id_unit, status) VALUES (?, ?, ?, ?, ?, ?)', [usernameAdmin, passwordAdmin, waAdmin, levelAdmin, unitAdmin, "Aktif"]);
+            res.status(200).json({ message: 'Admin berhasil ditambahkan' });
         } catch (error) {
             res.status(500).json({ error: 'Gagal menambahkan admin' });
         }

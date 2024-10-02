@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
         try {
             // Ambil user dari database
-            const [rows] = await db.query('SELECT * FROM tbl_user WHERE username = ?', [username]);
+            const [rows] = await db.query('SELECT u.*, un.id AS id_units, un.unit FROM tbl_user u LEFT JOIN tbl_unit un ON u.id_unit = un.id WHERE username = ?', [username]);
 
             if (rows.length === 0) {
                 return res.status(401).json({ message: 'Username Salah !' });

@@ -9,7 +9,7 @@ import { IoSearch } from "react-icons/io5";
 import { TiPlus } from "react-icons/ti";
 import Swal from "sweetalert2";
 
-export default function AdminDataAdmin() {
+export default function AdminDataUnit() {
   const [loadingModal, setLoadingModal] = useState(false);
 
   const customStyles = {
@@ -29,44 +29,15 @@ export default function AdminDataAdmin() {
 
   const columns = [
     {
-      name: "Username",
-      selector: (row) => row.username,
+      name: "Id",
+      selector: (row) => row.id,
       sortable: true,
       wrap: true,
       minWidth: "150px",
     },
     {
-      name: "No WA",
-      selector: (row) => row.no_wa || "-",
-      sortable: true,
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: "Unit",
-      selector: (row) => row.unit || "-",
-      sortable: true,
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: "Role",
-      selector: (row) => row.role,
-      sortable: true,
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: "Status",
-      cell: (row) => (
-        <div
-          className={`badge badge-outline ${
-            row.status == "Aktif" ? "badge-success" : "badge-error"
-          }`}
-        >
-          {row.status}
-        </div>
-      ),
+      name: "Kategori",
+      selector: (row) => row.kategori,
       sortable: true,
       wrap: true,
       minWidth: "150px",
@@ -74,12 +45,12 @@ export default function AdminDataAdmin() {
     {
       name: "Aksi",
       button: true,
-      minWidth: "150px",
+      minWidth: "200px",
       cell: (row) => (
         <div className="flex gap-3">
           <button
             className="btn btn-outline btn-warning btn-sm"
-            onClick={() => handleEditStatus(row)}
+            onClick={() => handleEditKategori(row)}
           >
             Edit
           </button>
@@ -95,71 +66,45 @@ export default function AdminDataAdmin() {
   ];
 
   // Fetch Data Admin & Superadmin
-  const [users, setUsers] = useState([]);
-  const [units, setUnits] = useState([]);
+  const [kategoris, setKategoris] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchData();
-    fetchDataUnit();
+    fetchDataKategori();
   }, []);
-  const fetchData = () => {
-    fetch("/api/admin")
+  const fetchDataKategori = () => {
+    fetch("/api/kategori")
       .then((response) => response.json())
       .then((data) => {
-        setUsers(data);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  };
-  const fetchDataUnit = () => {
-    fetch("/api/unit")
-      .then((response) => response.json())
-      .then((data) => {
-        setUnits(data);
+        setKategoris(data);
       })
       .catch((err) => {
         setError(err);
       });
   };
 
-  // Tambah Admin & Superadmin
-  const [addAdmin, setAddAdmin] = useState(false);
-  const [levelAdmin, setLevelAdmin] = useState("admin");
-  const [usernameAdmin, setUsernameAdmin] = useState("");
-  const [waAdmin, setWaAdmin] = useState("");
-  const [unitAdmin, setUnitAdmin] = useState(null);
+  // Tambah Kategori
+  const [addKategori, setAddKategori] = useState(false);
+  const [textKategori, setTextKategori] = useState("");
 
-  useEffect(() => {
-    if (levelAdmin !== "admin") {
-      setWaAdmin(null);
-      setUnitAdmin(null);
-    }
-  }, [levelAdmin]);
-
-  const handleAddAdmin = () => {
-    setAddAdmin(true);
-    setUnitAdmin(units[0].id);
+  const handleAddKategori = () => {
+    setAddKategori(true);
   };
-  const handleCloseAddAdmin = () => {
-    setAddAdmin(false);
-    setLevelAdmin("admin");
-    setUsernameAdmin("");
-    setWaAdmin("");
-    setUnitAdmin(units[0].id);
+  const handleCloseAddKategori = () => {
+    setAddKategori(false);
+    setTextKategori("");
   };
 
-  const handleSubmitAddAdmin = async (event) => {
+  const handleSubmitAddKategori = async (event) => {
     event.preventDefault();
     setLoadingModal(true);
     try {
-      const res = await fetch("/api/admin", {
+      const res = await fetch("/api/kategori", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ levelAdmin, usernameAdmin, waAdmin, unitAdmin }),
+        body: JSON.stringify({ textKategori }),
       });
       const result = await res.json();
       if (res.status == 200) {
@@ -170,7 +115,7 @@ export default function AdminDataAdmin() {
           showConfirmButton: false,
           timer: 2000,
         });
-        fetchData();
+        fetchDataKategori();
       } else {
         Swal.fire({
           title: "Gagal",
@@ -180,12 +125,9 @@ export default function AdminDataAdmin() {
           timer: 2000,
         });
       }
-      setAddAdmin(false);
+      setAddKategori(false);
       setLoadingModal(false);
-      setLevelAdmin("admin");
-      setUsernameAdmin("");
-      setWaAdmin("");
-      setUnitAdmin("");
+      setTextKategori("");
     } catch (error) {
       Swal.fire({
         title: "Error",
@@ -194,42 +136,26 @@ export default function AdminDataAdmin() {
         showConfirmButton: false,
         timer: 10000,
       });
-      setAddAdmin(false);
+      setAddKategori(false);
       setLoadingModal(false);
     }
   };
 
-  // Edit Status Admin & Superadmin
-  const [editStatus, setEditStatus] = useState(null);
-  const [statusActive, setStatusActive] = useState(null);
-  const [statusText, setStatusText] = useState("");
-  const handleEditStatus = (row) => {
-    setEditStatus(row);
-    if (row.status === "Aktif") {
-      setStatusActive(true);
-      setStatusText("Aktif");
-    } else if (row.status === "Tidak Aktif") {
-      setStatusActive(false);
-      setStatusText("Tidak Aktif");
-    }
+  // Edit Kategori
+  const [editKategori, setEditKategori] = useState(null);
+  const [editTextKategori, setEditTextKategori] = useState(null);
+  const handleEditKategori = (row) => {
+    setEditKategori(row);
+    setEditTextKategori(row.kategori);
   };
-  const handleChangeStatus = () => {
-    if (statusActive == true) {
-      setStatusActive(false);
-      setStatusText("Tidak Aktif");
-    } else if (statusActive == false) {
-      setStatusActive(true);
-      setStatusText("Aktif");
-    }
+  const handleCloseEditKategori = () => {
+    setEditKategori(null);
   };
-  const handleCloseEditStatus = () => {
-    setEditStatus(null);
-  };
-  const handleSubmitEditStatus = (event) => {
+  const handleSubmitEditKategori = (event) => {
     event.preventDefault();
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin merubah status admin`,
+      text: `ingin merubah kategori ${editKategori.kategori}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -242,14 +168,14 @@ export default function AdminDataAdmin() {
       if (result.isConfirmed) {
         try {
           setLoadingModal(true);
-          const res = await fetch("/api/admin", {
+          const res = await fetch("/api/kategori", {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              updatedId: editStatus.id,
-              updatedStatus: statusText,
+              updatedId: editKategori.id,
+              updatedKategori: editTextKategori,
             }),
           });
           const result = await res.json();
@@ -261,7 +187,7 @@ export default function AdminDataAdmin() {
               showConfirmButton: false,
               timer: 2000,
             });
-            fetchData();
+            fetchDataKategori();
           } else {
             Swal.fire({
               title: "Gagal",
@@ -272,7 +198,7 @@ export default function AdminDataAdmin() {
             });
           }
           setLoadingModal(false);
-          setEditStatus(null);
+          setEditKategori(null);
         } catch (error) {
           Swal.fire({
             title: "Error",
@@ -282,17 +208,17 @@ export default function AdminDataAdmin() {
             timer: 10000,
           });
           setLoadingModal(false);
-          setEditStatus(null);
+          setEditKategori(null);
         }
       }
     });
   };
 
-  // Hapus Admin & Superadmin
+  // Hapus Kategori
   const handleActionHapus = (row) => {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menghapus ${row.username}`,
+      text: `ingin menghapus kategori ${row.kategori}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -305,7 +231,7 @@ export default function AdminDataAdmin() {
       if (result.isConfirmed) {
         try {
           setLoadingModal(true);
-          const res = await fetch("/api/admin", {
+          const res = await fetch("/api/kategori", {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
@@ -321,7 +247,7 @@ export default function AdminDataAdmin() {
               showConfirmButton: false,
               timer: 2000,
             });
-            fetchData();
+            fetchDataKategori();
           } else {
             Swal.fire({
               title: "Gagal",
@@ -365,19 +291,19 @@ export default function AdminDataAdmin() {
 
   // Search
   const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
-  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [filteredKategoris, setFilteredKategoris] = useState([]);
   useEffect(() => {
-    if (searchTerm.length >= 2) {
-      const filteredData = users.filter(
-        (user) =>
-          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (user.no_wa?.toString() || "").includes(searchTerm)
+    if (searchTerm.length >= 1) {
+      const filteredData = kategoris.filter(
+        (kategori) =>
+          (kategori.id?.toString() || "").includes(searchTerm) ||
+          kategori.kategori.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredUsers(filteredData);
+      setFilteredKategoris(filteredData);
     } else {
-      setFilteredUsers(users); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+      setFilteredKategoris(kategoris);
     }
-  }, [searchTerm, users]);
+  }, [searchTerm, kategoris]);
 
   // Mounted
   const [isMounted, setIsMounted] = useState(false);
@@ -388,10 +314,10 @@ export default function AdminDataAdmin() {
   return (
     <>
       <Head>
-        <title>Data Admin</title>
+        <title>Data Kategori</title>
       </Head>
       <DefaultLayout>
-        <h1 className="text-xl font-semibold">Data Admin</h1>
+        <h1 className="text-xl font-semibold">Data Kategori</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
           <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
             <input
@@ -406,10 +332,10 @@ export default function AdminDataAdmin() {
           <div className="grid grid-cols-1 gap-2">
             <button
               className="btn bg-orange-500 text-white hover:bg-orange-600"
-              onClick={handleAddAdmin}
+              onClick={handleAddKategori}
             >
               <TiPlus size={24} />
-              Admin
+              Kategori
             </button>
           </div>
         </div>
@@ -417,7 +343,7 @@ export default function AdminDataAdmin() {
           {isMounted && (
             <DataTable
               columns={columns}
-              data={filteredUsers}
+              data={filteredKategoris}
               customStyles={customStyles}
               pagination
             />
@@ -425,96 +351,27 @@ export default function AdminDataAdmin() {
         </div>
       </DefaultLayout>
 
-      {/* Modal Add Admin */}
-      {addAdmin && (
-        <Modal title="Tambah Admin" onCloseModal={handleCloseAddAdmin}>
-          <form className="mt-4" action="" onSubmit={handleSubmitAddAdmin}>
-            {/* Level Admin */}
-            <label className="form-control w-full mt-2">
-              <div className="flex flex-col">
-                <span className="label-text">Level</span>
-                <div className="flex gap-8 mt-2">
-                  <div className="form-control">
-                    <label className="label gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="radio-10"
-                        className="radio checked:bg-orange-500"
-                        value={"admin"}
-                        onChange={(e) => setLevelAdmin(e.target.value)}
-                        defaultChecked
-                      />
-                      <span className="label-text">Admin</span>
-                    </label>
-                  </div>
-                  <div className="form-control">
-                    <label className="label gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="radio-10"
-                        className="radio checked:bg-orange-500"
-                        value={"superadmin"}
-                        onChange={(e) => setLevelAdmin(e.target.value)}
-                      />
-                      <span className="label-text">Superadmin</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </label>
-            {/* Username */}
+      {/* Modal Add Kategori */}
+      {addKategori && (
+        <Modal title="Tambah Kategori" onCloseModal={handleCloseAddKategori}>
+          <form className="mt-4" action="" onSubmit={handleSubmitAddKategori}>
+            {/* Kategori */}
             <label className="form-control w-full mt-2">
               <div className="label">
-                <span className="label-text">Username</span>
+                <span className="label-text">Nama Kategori</span>
               </div>
               <input
                 type="text"
-                placeholder="Masukkan username"
+                placeholder="Masukkan nama kategori"
                 className="input input-bordered w-full"
-                value={usernameAdmin}
-                onChange={(e) => setUsernameAdmin(e.target.value)}
+                value={textKategori}
+                onChange={(e) => setTextKategori(e.target.value)}
                 required
               />
             </label>
-            {/* Nomor WA */}
-            {levelAdmin == "admin" && (
-              <label className="form-control w-full mt-2">
-                <div className="label">
-                  <span className="label-text">Nomor WA</span>
-                </div>
-                <input
-                  type="number"
-                  placeholder="0812XXXXXXX"
-                  className="input input-bordered w-full"
-                  value={waAdmin}
-                  onChange={(e) => setWaAdmin(e.target.value)}
-                  required
-                />
-              </label>
-            )}
-            {/* Unit Admin */}
-            {levelAdmin == "admin" && (
-              <label className="form-control w-full mt-2">
-                <div className="label">
-                  <span className="label-text">Unit</span>
-                </div>
-                <select
-                  className="select select-bordered"
-                  value={unitAdmin}
-                  onChange={(e) => setUnitAdmin(e.target.value)}
-                  required
-                >
-                  {units.map((un) => (
-                    <option key={un.id} value={un.id}>
-                      {un.unit}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
             {/* Submit */}
             <div className="flex justify-between mt-8">
-              <button className="btn" onClick={handleCloseAddAdmin}>
+              <button className="btn" onClick={handleCloseAddKategori}>
                 Batal
               </button>
               <button
@@ -528,24 +385,28 @@ export default function AdminDataAdmin() {
         </Modal>
       )}
 
-      {/* Modal Edit Status Admin */}
-      {editStatus && (
-        <Modal title="Edit Status Admin" onCloseModal={handleCloseEditStatus}>
-          <form className="mt-8" action="" onSubmit={handleSubmitEditStatus}>
+      {/* Modal Edit Kategori*/}
+      {editKategori && (
+        <Modal title="Edit Kategori" onCloseModal={handleCloseEditKategori}>
+          <form className="mt-4" action="" onSubmit={handleSubmitEditKategori}>
             <div className="form-control">
-              <label className="cursor-pointer flex items-center gap-3">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text">Nama Kategori</span>
+                </div>
                 <input
-                  type="checkbox"
-                  checked={statusActive}
-                  onChange={handleChangeStatus}
-                  className="checkbox checkbox-success"
+                  type="text"
+                  placeholder="Masukkan nama kategori"
+                  className="input input-bordered w-full"
+                  value={editTextKategori}
+                  onChange={(e) => setEditTextKategori(e.target.value)}
+                  required
                 />
-                <p>Aktif</p>
               </label>
             </div>
             {/* Submit */}
             <div className="flex justify-between mt-8">
-              <button className="btn" onClick={handleCloseEditStatus}>
+              <button className="btn" onClick={handleCloseEditKategori}>
                 Batal
               </button>
               <button

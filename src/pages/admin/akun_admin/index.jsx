@@ -254,7 +254,7 @@ export default function AdminKonfirmasi() {
                 </tr>
                 <tr>
                   <th>Unit</th>
-                  <td>{users.unit}</td>
+                  <td>{users.unit == null ? "-" : users.unit}</td>
                 </tr>
                 <tr>
                   <th>Nomor Whatsapp</th>

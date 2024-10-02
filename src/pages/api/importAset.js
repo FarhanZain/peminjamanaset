@@ -20,8 +20,8 @@ export default async function handler(req, res) {
                     const sheet = workbook.Sheets[sheetName];
                     const data = utils.sheet_to_json(sheet);
 
-                    const query = 'INSERT INTO tbl_aset (no_aset, nama, unit, lokasi, gambar) VALUES ?';
-                    const values = data.map((row) => [row.nomor_aset, row.nama_aset, row.unit_aset, row.lokasi_aset, null]);
+                    const query = 'INSERT INTO tbl_aset (no_aset, nama, id_unit, lokasi, gambar, id_kategori, status_aset, detail) VALUES ?';
+                    const values = data.map((row) => [row.nomor_aset, row.nama_aset, row.id_unit, row.lokasi_aset, null, row.id_kategori, "Tersedia", row.detail_aset]);
 
                     const queryDuplicate = 'SELECT no_aset FROM tbl_aset WHERE no_aset IN (?)';
                     const valuesDuplicate = data.map((row) => [row.nomor_aset]);                    
@@ -33,15 +33,8 @@ export default async function handler(req, res) {
                         return res.status(409).json({ error: `Nomor aset ${duplicateData} sudah ada di database` });
                     }
 
-                    const [result] = await db.query(query, [values]);
-
-                    const insertedId = result.insertId;
-                    const rowsInserted = result.affectedRows;
-
-                    for (let i = 0; i < rowsInserted; i++) {
-                        const id_aset = insertedId + i;
-                        await db.query(`INSERT INTO tbl_beranda (id_aset, stok) VALUES (?, 'Tersedia')`, [id_aset]);
-                    }
+                    await db.query(query, [values]);
+                    
                     res.status(200).json({ message: 'Aset berhasil ditambahkan' });
                 })
             } catch (error) {
