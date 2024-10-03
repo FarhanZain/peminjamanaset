@@ -163,8 +163,8 @@ export default function PageRiwayat() {
       if (result.isConfirmed) {
         setLoadingModal(true);
         try {
-          const res = await fetch("/api/beranda", {
-            method: "PUT",
+          const res = await fetch("/api/riwayat", {
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -372,6 +372,8 @@ export default function PageRiwayat() {
                       ? "badge-error"
                       : activeModalId.status_pinjam == "Ditolak"
                       ? "badge-error"
+                      : activeModalId.status_pinjam == "Bermasalah"
+                      ? "badge-error"
                       : "badge-neutral"
                   }`}
                 >
@@ -433,6 +435,14 @@ export default function PageRiwayat() {
                   </p>
                 </div>
               </div>
+              {activeModalId.catatan ? (
+                <>
+                <p className="text-sm font-semibold mt-4">Catatan</p>
+                <p className="text-sm mt-1">{activeModalId.catatan}</p>
+                </>
+              ) : (
+                ""
+              )}
               {activeModalId.status_pinjam == "Menunggu Konfirmasi" ? (
                 <button
                   type="button"

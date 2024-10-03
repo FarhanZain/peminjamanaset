@@ -1,5 +1,6 @@
 import db from '../../lib/db';
 import multer from "multer";
+import jwt from 'jsonwebtoken';
 
 
 const fs = require('fs')
@@ -36,10 +37,18 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+    const token = req.cookies.auth;
+    const decoded = jwt.verify(token, '!iniTokenRAHASIApeminjaman@set?');
+    
     if (req.method == 'GET') {
         try {
-            const [rows] = await db.query('SELECT a.*, un.id AS id_units, un.unit, k.id AS id_kategoris, k.kategori FROM tbl_aset a JOIN tbl_unit un ON a.id_unit = un.id JOIN tbl_kategori k ON a.id_kategori = k.id');
-            res.status(200).json(rows);
+            if (decoded.unit) {
+                const [rows] = await db.query('SELECT a.*, un.id AS id_units, un.unit, k.id AS id_kategoris, k.kategori FROM tbl_aset a JOIN tbl_unit un ON a.id_unit = un.id JOIN tbl_kategori k ON a.id_kategori = k.id WHERE un.unit = ?', [decoded.unit]);
+                res.status(200).json(rows);
+            } else {
+                const [rows] = await db.query('SELECT a.*, un.id AS id_units, un.unit, k.id AS id_kategoris, k.kategori FROM tbl_aset a JOIN tbl_unit un ON a.id_unit = un.id JOIN tbl_kategori k ON a.id_kategori = k.id');
+                res.status(200).json(rows);
+            }
         } catch (error) {
             res.status(500).json({ error: 'Error fetching users' });
         }

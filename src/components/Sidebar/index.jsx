@@ -7,6 +7,7 @@ import Image from "next/image";
 import SidebarLinkGroup from "./SidebarLinkGroup";
 import { useRouter } from "next/router";
 import { HiOutlineQueueList } from "react-icons/hi2";
+import { LuListEnd } from "react-icons/lu";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const pathname = usePathname();
@@ -278,6 +279,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </Link>
               </li>
               {/* <!-- Menu Item Sedang Dipinjam --> */}
+
+              {/* <!-- Menu Item Aset Dikembalikan --> */}
+              <li>
+                <Link
+                  href="/admin/aset_dikembalikan"
+                  className={`group relative flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-black duration-300 ease-in-out hover:bg-orange-100 hover:rounded-lg ${
+                    (pathname === "/admin/aset_dikembalikan" ||
+                      pathname.includes("admin/aset_dikembalikan")) &&
+                    "bg-orange-100 text-orange-500"
+                  }`}
+                >
+                  <LuListEnd size={20} />
+                  Aset Dikembalikan
+                </Link>
+              </li>
+              {/* <!-- Menu Item Aset Dikembalikan --> */}
 
               {/* <!-- Menu Item Selesai Dipinjam --> */}
               <li>

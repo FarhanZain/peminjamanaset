@@ -130,29 +130,18 @@ export default function AdminDataAset() {
 
   // fetch data aset
   const [asets, setAsets] = useState([]);
-  const [units, setUnits] = useState([]);
   const [kategoris, setKategoris] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    if (userUnit) {
-      fetchData();
-      fetchDataUnit();
-      fetchDataKategori();
-    }
     fetchData();
     fetchDataUnit();
     fetchDataKategori();
-  }, [userUnit]);
+  }, []);
   const fetchData = () => {
     fetch("/api/aset")
       .then((response) => response.json())
       .then((data) => {
-        if (userUnit) {
-          const filteredData = data.filter((aset) => aset.unit === userUnit);
-          setAsets(filteredData);
-        } else {
           setAsets(data);
-        }
       })
       .catch((err) => {
         setError(err);
@@ -607,7 +596,6 @@ export default function AdminDataAset() {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
-      setUserUnit(data.unit);
 
       if (
         res.status !== 200 ||

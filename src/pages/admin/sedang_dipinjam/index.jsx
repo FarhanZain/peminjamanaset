@@ -14,6 +14,9 @@ export default function AdminSedangDipinjam() {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, 
     });
     return format;
   };
@@ -77,8 +80,8 @@ export default function AdminSedangDipinjam() {
       width: "150px",
     },
     {
-      name: "Alasan",
-      cell: (row) => <div style={{ padding: "8px 0" }}>{row.alasan}</div>,
+      name: "Keperluan",
+      cell: (row) => <div style={{ padding: "8px 0" }}>{row.keperluan}</div>,
       sortable: true,
       wrap: true,
       minWidth: "200px",
@@ -88,10 +91,10 @@ export default function AdminSedangDipinjam() {
       cell: (row) => (
         <div
           className={`badge badge-outline ${
-            row.status == "Sedang Dipinjam" ? "badge-success" : "badge-error"
+            row.status_pinjam == "Disetujui" ? "badge-success" : "badge-error"
           }`}
         >
-          {row.status}
+          {row.status_pinjam}
         </div>
       ),
       sortable: true,
@@ -103,21 +106,18 @@ export default function AdminSedangDipinjam() {
   const [pinjams, setPinjams] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Fetch data dari API route
+    fetchData();
+  }, []);
+  const fetchData = () => {
     fetch("/api/sedangPinjam")
       .then((response) => response.json())
       .then((data) => {
-        const filteredData = data.filter(
-          (pinjaman) =>
-            pinjaman.status === "Sedang Dipinjam" ||
-            pinjaman.status === "Jatuh Tempo"
-        );
-        setPinjams(filteredData); // Menyimpan data ke state
+        setPinjams(data);
       })
       .catch((err) => {
         setError(err);
       });
-  }, []);
+  };
 
   // Search
   const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
@@ -164,8 +164,8 @@ export default function AdminSedangDipinjam() {
       "No Wa": pinjam.no_wa,
       "Tanggal Mulai": formatTanggal(pinjam.tgl_mulai),
       "Tanggal Selesai": formatTanggal(pinjam.tgl_selesai),
-      Alasan: pinjam.alasan,
-      Status: pinjam.status,
+      Alasan: pinjam.keperluan,
+      Status: pinjam.status_pinjam,
     }));
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils?.json_to_sheet(dataToExport);

@@ -41,8 +41,8 @@ export default function AdminKonfirmasi() {
 
   const columns = [
     {
-      name: "Tgl Pengajuan",
-      selector: (row) => formatTanggal(row.tgl_pengajuan),
+      name: "Tgl Pengembalian",
+      selector: (row) => formatTanggal(row.tgl_pengembalian),
       sortable: true,
       wrap: true,
       width: "170px",
@@ -99,20 +99,20 @@ export default function AdminKonfirmasi() {
     {
       name: "Aksi",
       button: true,
-      minWidth: "150px",
+      minWidth: "200px",
       cell: (row) => (
         <div className="flex gap-3">
           <button
             className="btn btn-outline btn-success btn-sm"
-            onClick={() => handleActionSetuju(row)}
+            onClick={() => handleActionSelesai(row)}
           >
-            Setuju
+            Selesai
           </button>
           <button
             className="btn btn-outline btn-error btn-sm"
-            onClick={() => handleActionTolak(row)}
+            onClick={() => handleActionMasalah(row)}
           >
-            Tolak
+            Bermasalah
           </button>
         </div>
       ),
@@ -126,7 +126,7 @@ export default function AdminKonfirmasi() {
     fetchData();
   }, []);
   const fetchData = () => {
-    fetch("/api/konfirmasi")
+    fetch("/api/dikembalikan")
       .then((response) => response.json())
       .then((data) => {
         setPinjams(data);
@@ -156,10 +156,10 @@ export default function AdminKonfirmasi() {
   }, [searchTerm, pinjams]);
 
   // Setuju
-  function handleActionSetuju(row) {
+  function handleActionSelesai(row) {
     Swal.fire({
       title: "Apakah kamu yakin ?",
-      text: `ingin menyetujui peminjaman aset ${row.nama} oleh ${row.nama_lengkap}`,
+      text: `ingin menyelesaikan peminjaman aset ${row.nama} oleh ${row.nama_lengkap}`,
       icon: "warning",
       showCancelButton: true,
       reverseButtons: true,
@@ -172,7 +172,7 @@ export default function AdminKonfirmasi() {
       if (result.isConfirmed) {
         setLoadingModal(true);
         try {
-          const res = await fetch("/api/konfirmasi", {
+          const res = await fetch("/api/dikembalikan", {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -186,41 +186,12 @@ export default function AdminKonfirmasi() {
           if (res.status == 200) {
             Swal.fire({
               title: "Berhasil",
-              text: "Peminjaman berhasil disetujui",
+              text: "Peminjaman berhasil diselesaikan",
               icon: "success",
               showConfirmButton: false,
               timer: 2000,
             });
             fetchData();
-            // result.forEach(async (target) => {
-            //   try {
-            //     const data = new FormData();
-            //     data.append("target", `0${target.no_wa}`);
-            //     data.append(
-            //       "message",
-            //       `Halo ${row.nama_lengkap}, peminjaman aset ${row.nama} *_telah disetujui_* oleh admin, selamat menggunakan dan jaga aset dengan baik ya. Terima kasih.`
-            //     );
-            //     data.append("delay", "0");
-            //     data.append("countryCode", "62");
-
-            //     const resWa = await fetch("https://api.fonnte.com/send", {
-            //       method: "POST",
-            //       mode: "cors",
-            //       headers: new Headers({
-            //         Authorization: "pVHcLp66otGgrACBuCWm",
-            //       }),
-            //       body: data,
-            //     });
-            //     const waResult = await resWa.json();
-            //     if (waResult.status) {
-            //       console.log(`Pesan berhasil dikirim ke Admin`);
-            //     } else {
-            //       console.log(`Gagal mengirim pesan ke Admin`);
-            //     }
-            //   } catch (error) {
-            //     console.log(error);
-            //   }
-            // });
           } else {
             Swal.fire({
               title: "Gagal",
@@ -245,20 +216,20 @@ export default function AdminKonfirmasi() {
     });
   }
 
-  // Tolak
+  // Bermasalah
   const [formCatatan, setFormCatatan] = useState(false);
-  const [idTolak, setIdTolak] = useState(null);
+  const [idMasalah, setIdMasalah] = useState(null);
   const [idUser, setIdUser] = useState(null);
   const [namaAset, setNamaAset] = useState(null);
   const [textCatatan, setTextCatatan] = useState(null);
 
-  const handleActionTolak = (row) => {
+  const handleActionMasalah = (row) => {
     setFormCatatan(true)
-    setIdTolak(row.id)
+    setIdMasalah(row.id)
     setIdUser(row.id_user)
     setNamaAset(row.nama)
   }
-  const handleCloseTolak = () => {
+  const handleCloseMasalah = () => {
     setFormCatatan(false)
     setTextCatatan(null)
   }
@@ -266,13 +237,13 @@ export default function AdminKonfirmasi() {
     event.preventDefault();
     setLoadingModal(true);
     try {
-      const res = await fetch("/api/konfirmasi", {
+      const res = await fetch("/api/dikembalikan", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          idTolak,
+          idMasalah,
           textCatatan,
           idUser,
         }),
@@ -281,7 +252,7 @@ export default function AdminKonfirmasi() {
       if (res.status == 200) {
         Swal.fire({
           title: "Berhasil",
-          text: "Peminjaman berhasil ditolak",
+          text: "Peminjaman berhasil diselesaikan",
           icon: "success",
           showConfirmButton: false,
           timer: 2000,
@@ -294,7 +265,7 @@ export default function AdminKonfirmasi() {
         //     data.append("target", `0${target.no_wa}`);
         //     data.append(
         //       "message",
-        //       `Halo ${target.nama_lengkap}, peminjaman aset ${namaAset} *_telah ditolak_* oleh admin, mohon maaf tidak bisa meminjam aset ini. Berikut catatan penolakan dari admin : ${textCatatan}.`
+        //       `Halo ${target.nama_lengkap}, pengembalian aset ${namaAset} yang dipinjam *_Terjadi Masalah_*, Segera hubungi atau temui pihak unit admin terkait. Berikut catatan masalah dari admin : ${textCatatan}.`
         //     );
         //     data.append("delay", "0");
         //     data.append("countryCode", "62");
@@ -368,10 +339,10 @@ export default function AdminKonfirmasi() {
   return (
     <>
       <Head>
-        <title>Konfirmasi Peminjaman Aset</title>
+        <title>Aset Dikembalikan</title>
       </Head>
       <DefaultLayout>
-        <h1 className="text-xl font-semibold">Konfirmasi Peminjaman Aset</h1>
+        <h1 className="text-xl font-semibold">Aset Dikembalikan</h1>
         <label className="input input-bordered flex items-center gap-2 w-[300px] mt-4">
           <input
             type="text"
@@ -396,7 +367,7 @@ export default function AdminKonfirmasi() {
 
       {/* Modal Edit Catatan */}
       {formCatatan && (
-        <Modal title="Catatan Menolak" onCloseModal={handleCloseTolak}>
+        <Modal title="Catatan Bermasalah" onCloseModal={handleCloseMasalah}>
           <form className="mt-4" action="" onSubmit={handleSubmitCatatan}>
             {/* Catatan */}
             <label className="form-control w-full">
@@ -411,7 +382,7 @@ export default function AdminKonfirmasi() {
             </label>
             {/* Submit */}
             <div className="flex justify-between mt-4">
-              <button className="btn" onClick={handleCloseTolak}>
+              <button className="btn" onClick={handleCloseMasalah}>
                 Batal
               </button>
               <button

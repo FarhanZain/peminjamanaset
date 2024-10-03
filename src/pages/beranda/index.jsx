@@ -18,13 +18,29 @@ export default function PageBeranda() {
 
   const today = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }).replace(' ', 'T').slice(0, 16)
 
+  const formatTanggal = (tanggal) => {
+    const format = new Date(tanggal).toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, 
+    });
+    return format;
+  };
+
   // Modal Detail
   const [activeModalId, setActiveModalId] = useState(null);
+  const [idAset, setIdAset] = useState(null);
   const handleCardClick = (aset) => {
     setActiveModalId(aset);
+    setIdAset(aset.id);
   };
   const handleCloseModal = () => {
     setActiveModalId(null);
+    setIdAset(null);
   };
 
   // Modal Pinjam
@@ -33,12 +49,14 @@ export default function PageBeranda() {
   const [pinjamIdUser, setPinjamIdUser] = useState(null);
   const [pinjamUnit, setPinjamUnit] = useState(null);
   const [pinjamPengajuan, setPinjamPengajuan] = useState(null);
-  const [pinjamMulai, setPinjamMulai] = useState(null);
-  const [pinjamSelesai, setPinjamSelesai] = useState(null);
+  const [pinjamMulai, setPinjamMulai] = useState('');
+  const [pinjamSelesai, setPinjamSelesai] = useState('');
   const [pinjamKeperluan, setPinjamKeperluan] = useState("");
-  //
+  // wa
   const [namaWa, setNamaWa] = useState(null);
   const [asetWa, setAsetWa] = useState(null);
+  // rentang waktu
+  const [textPeringatan, setTextPeringatan] = useState('');
 
   const handleFormPeminjaman = () => {
     setModalFormPeminjaman(true);
@@ -53,7 +71,43 @@ export default function PageBeranda() {
   const handleCloseForm = () => {
     setModalFormPeminjaman(false);
     setPinjamKeperluan("");
+    setPinjamMulai('');
+    setPinjamSelesai('');
   };
+
+  // Cek Rentang Waktu
+  function isRangeOverlapping(mulai1, selesai1, mulai2, selesai2) {
+    return (mulai1 < selesai2 && selesai1 > mulai2);
+  }
+  const cekRentangWaktu = () => {
+    if (pinjamMulai && pinjamSelesai) {
+      const selectedStart = new Date(pinjamMulai);
+      const selectedEnd = new Date(pinjamSelesai);
+
+      if (selectedStart >= selectedEnd) {
+        setTextPeringatan('Waktu selesai harus melebihi waktu mulai');
+      }else{
+        setTextPeringatan('')
+      }
+
+      const isBooked = rentangWaktu.filter((rentang) => rentang.id_aset === idAset && (rentang.status_pinjam === "Menunggu Konfirmasi" || rentang.status_pinjam === "Disetujui")).some(rentang => {
+        const bookedStart = new Date(rentang.tgl_mulai);
+        const bookedEnd = new Date(rentang.tgl_selesai);
+        return isRangeOverlapping(selectedStart, selectedEnd, bookedStart, bookedEnd);
+      });
+
+      if (isBooked) {
+        setTextPeringatan('Rentang waktu ini sudah digunakan, silakan pilih waktu lain.');
+        setPinjamMulai('');
+        setPinjamSelesai('');
+      }
+    }
+  }
+  useEffect(() => {
+    cekRentangWaktu();
+  }, [pinjamMulai, pinjamSelesai]);
+
+  // Submit
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     setLoadingModal(true);
@@ -83,6 +137,7 @@ export default function PageBeranda() {
           timer: 2000,
         });
         fetchData();
+        fetchDataRiwayat();
         setActiveModalId(null);
         setModalFormPeminjaman(false);
         setPinjamKeperluan("");
@@ -177,15 +232,28 @@ export default function PageBeranda() {
 
   // fetch data aset
   const [asets, setAsets] = useState([]);
+  const [rentangWaktu, setRentangWaktu] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
     fetchData();
+    fetchDataRiwayat();
   }, []);
   const fetchData = () => {
     fetch("/api/beranda")
       .then((response) => response.json())
       .then((data) => {
         setAsets(data);
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+  const fetchDataRiwayat = () => {
+    fetch("/api/rentangWaktu")
+      .then((response) => response.json())
+      .then((data) => {
+        const dataRentang = data.filter((rentang) => rentang.id_aset === idAset && (rentang.status_pinjam === "Menunggu Konfirmasi" || rentang.status_pinjam === "Disetujui"));
+        setRentangWaktu(data);
       })
       .catch((err) => {
         setError(err);
@@ -288,6 +356,15 @@ export default function PageBeranda() {
               </div>
               <div className="mb-3">
                 <h3 className="font-semibold text-sm">Rentang waktu yang sudah dipinjam :</h3>
+                  <div>
+                    {rentangWaktu.filter((rentang) => rentang.id_aset === idAset && (rentang.status_pinjam === "Menunggu Konfirmasi" || rentang.status_pinjam === "Disetujui")).length > 0 ? (
+                      rentangWaktu.filter((rentang) => rentang.id_aset === idAset && (rentang.status_pinjam === "Menunggu Konfirmasi" || rentang.status_pinjam === "Disetujui")).map((rentang) => (
+                        <li key={rentang.id_riwayat} className="mt-1 text-sm">{formatTanggal(rentang.tgl_mulai)} {"\u00A0 \u00A0 - \u00A0 \u00A0"} {formatTanggal(rentang.tgl_selesai)}</li>
+                      ))
+                    ) : (
+                      <p className="mt-1 text-sm">- kosong -</p>
+                    )}
+                  </div>
               </div>
               {activeModalId.status_aset == "Tersedia" ? (
                 <button
@@ -342,6 +419,7 @@ export default function PageBeranda() {
                       placeholder="Tanggal Mulai"
                       className="input input-bordered input-md w-full focus:outline focus:outline-orange-300"
                       required
+                      value={pinjamMulai}
                       min={today}
                       onChange={(e) => setPinjamMulai(e.target.value)}
                     />
@@ -356,11 +434,13 @@ export default function PageBeranda() {
                       placeholder="Tanggal Selesai"
                       className="input input-bordered input-md w-full focus:outline focus:outline-orange-300"
                       required
+                      value={pinjamSelesai}
                       min={today}
                       onChange={(e) => setPinjamSelesai(e.target.value)}
                     />
                   </label>
                 </div>
+                <p className="mb-4 text-sm text-error">{textPeringatan}</p>
 
                 <label className="form-control w-full mb-4">
                   <span className="mb-1 text-sm lg:text-base">Keperluan</span>

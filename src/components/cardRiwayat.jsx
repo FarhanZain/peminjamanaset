@@ -33,7 +33,7 @@ export default function CardRiwayat(props) {
         )}
         <div>
           <div
-            className={`badge badge-outline mb-1 ${
+            className={`badge badge-outline mb-2 ${
               statusAset == "Menunggu Konfirmasi"
                 ? "badge-primary"
                 : statusAset == "Disetujui"

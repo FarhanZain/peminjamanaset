@@ -14,6 +14,9 @@ export default function AdminSelesaiDipinjam() {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, 
     });
     return format;
   };
@@ -87,8 +90,8 @@ export default function AdminSelesaiDipinjam() {
       width: "140px",
     },
     {
-      name: "Alasan",
-      cell: (row) => <div style={{ padding: "8px 0" }}>{row.alasan}</div>,
+      name: "Keperluan",
+      cell: (row) => <div style={{ padding: "8px 0" }}>{row.keperluan}</div>,
       sortable: true,
       wrap: true,
       minWidth: "200px",
@@ -98,10 +101,10 @@ export default function AdminSelesaiDipinjam() {
       cell: (row) => (
         <div
           className={`badge badge-outline ${
-            row.status == "Selesai" ? "badge-success" : "badge-error"
+            row.status_pinjam == "Selesai" ? "badge-success" : "badge-error"
           }`}
         >
-          {row.status}
+          {row.status_pinjam}
         </div>
       ),
       sortable: true,
@@ -113,17 +116,10 @@ export default function AdminSelesaiDipinjam() {
   const [pinjams, setPinjams] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Fetch data dari API route
     fetch("/api/selesaiPinjam")
       .then((response) => response.json())
       .then((data) => {
-        const filteredData = data.filter(
-          (pinjaman) =>
-            pinjaman.status === "Selesai" ||
-            pinjaman.status === "Ditolak" ||
-            pinjaman.status === "Dibatalkan"
-        );
-        setPinjams(filteredData); // Menyimpan data ke state
+        setPinjams(data);
       })
       .catch((err) => {
         setError(err);
