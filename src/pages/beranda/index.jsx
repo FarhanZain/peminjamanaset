@@ -11,13 +11,12 @@ import { useRouter } from "next/router";
 import { BsFolderX } from "react-icons/bs";
 import { CiImageOff } from "react-icons/ci";
 import ModalLoading from "@/components/modalLoading";
+import { BiCategoryAlt } from "react-icons/bi";
 
 export default function PageBeranda() {
   const [loadingModal, setLoadingModal] = useState(false);
 
-  const today = new Date().toLocaleDateString("sv-SE", {
-    timeZone: "Asia/Jakarta",
-  });
+  const today = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }).replace(' ', 'T').slice(0, 16)
 
   // Modal Detail
   const [activeModalId, setActiveModalId] = useState(null);
@@ -30,24 +29,22 @@ export default function PageBeranda() {
 
   // Modal Pinjam
   const [modalFormPeminjaman, setModalFormPeminjaman] = useState(false);
-  const [pinjamIdBeranda, setPinjamIdBeranda] = useState(null);
   const [pinjamIdAset, setPinjamIdAset] = useState(null);
   const [pinjamIdUser, setPinjamIdUser] = useState(null);
   const [pinjamUnit, setPinjamUnit] = useState(null);
   const [pinjamPengajuan, setPinjamPengajuan] = useState(null);
   const [pinjamMulai, setPinjamMulai] = useState(null);
   const [pinjamSelesai, setPinjamSelesai] = useState(null);
-  const [pinjamAlasan, setPinjamAlasan] = useState("");
+  const [pinjamKeperluan, setPinjamKeperluan] = useState("");
   //
   const [namaWa, setNamaWa] = useState(null);
   const [asetWa, setAsetWa] = useState(null);
 
   const handleFormPeminjaman = () => {
     setModalFormPeminjaman(true);
-    setPinjamIdBeranda(activeModalId.id_beranda);
-    setPinjamIdAset(activeModalId.id_aset);
+    setPinjamIdAset(activeModalId.id);
     setPinjamIdUser(users.id);
-    setPinjamUnit(activeModalId.unit);
+    setPinjamUnit(activeModalId.id_units);
     setPinjamPengajuan(today);
     //
     setNamaWa(users.nama_lengkap);
@@ -55,7 +52,7 @@ export default function PageBeranda() {
   };
   const handleCloseForm = () => {
     setModalFormPeminjaman(false);
-    setPinjamAlasan("");
+    setPinjamKeperluan("");
   };
   const handleSubmitForm = async (e) => {
     e.preventDefault();
@@ -67,13 +64,12 @@ export default function PageBeranda() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          pinjamIdBeranda,
           pinjamIdAset,
           pinjamIdUser,
           pinjamPengajuan,
           pinjamMulai,
           pinjamSelesai,
-          pinjamAlasan,
+          pinjamKeperluan,
           pinjamUnit,
         }),
       });
@@ -89,7 +85,8 @@ export default function PageBeranda() {
         fetchData();
         setActiveModalId(null);
         setModalFormPeminjaman(false);
-        setPinjamAlasan("");
+        setPinjamKeperluan("");
+        console.log(result);
         // result.forEach(async (target) => {
         //   try {
         //     const data = new FormData();
@@ -140,7 +137,7 @@ export default function PageBeranda() {
       setLoadingModal(false);
       setActiveModalId(null);
       setModalFormPeminjaman(false);
-      setPinjamAlasan("");
+      setPinjamKeperluan("");
     }
   };
 
@@ -260,32 +257,42 @@ export default function PageBeranda() {
                   loading="lazy"
                 />
               )}
-              <h3 className="text-xl font-bold mb-3">{activeModalId.nama}</h3>
-              <div className="flex gap-1 items-center mb-3">
-                <MdNumbers className="text-orange-500" />
-                <p className="text-sm">{activeModalId.no_aset}</p>
+              <h3 className="text-xl font-bold mb-1">{activeModalId.nama}</h3>
+              <p className="mb-2 text-sm">{activeModalId.detail}</p>
+              <div className="flex flex-wrap items-center gap-x-4">
+                <div
+                  className={`badge badge-outline mb-3 ${
+                    activeModalId.status_aset == "Tersedia"
+                      ? "badge-success"
+                      : "badge-error"
+                  }`}
+                >
+                  {activeModalId.status_aset}
+                </div>
+                <div className="flex gap-1 items-center mb-3">
+                  <MdNumbers className="text-orange-500" />
+                  <p className="text-sm">{activeModalId.no_aset}</p>
+                </div>
+                <div className="flex gap-1 items-center mb-3">
+                  <HiOutlineBuildingOffice2 className="text-orange-500" />
+                  <p className="text-sm">{activeModalId.unit}</p>
+                </div>
+                <div className="flex gap-1 items-center mb-3">
+                  <BiCategoryAlt className="text-orange-500" />
+                  <p className="text-sm">{activeModalId.kategori}</p>
+                </div>
+                <div className="flex gap-1 items-center mb-3">
+                  <HiOutlineLocationMarker className="text-orange-500" />
+                  <p className="text-sm">{activeModalId.lokasi}</p>
+                </div>
               </div>
-              <div className="flex gap-1 items-center mb-3">
-                <HiOutlineBuildingOffice2 className="text-orange-500" />
-                <p className="text-sm">{activeModalId.unit}</p>
+              <div className="mb-3">
+                <h3 className="font-semibold text-sm">Rentang waktu yang sudah dipinjam :</h3>
               </div>
-              <div className="flex gap-1 items-center mb-3">
-                <HiOutlineLocationMarker className="text-orange-500" />
-                <p className="text-sm">{activeModalId.lokasi}</p>
-              </div>
-              <div
-                className={`badge badge-outline mb-4 ${
-                  activeModalId.stok == "Tersedia"
-                    ? "badge-success"
-                    : "badge-error"
-                }`}
-              >
-                {activeModalId.stok}
-              </div>
-              {activeModalId.stok == "Tersedia" ? (
+              {activeModalId.status_aset == "Tersedia" ? (
                 <button
                   type="button"
-                  className="btn w-full text-white bg-orange-500 hover:bg-orange-600"
+                  className="btn w-full mt-2 text-white bg-orange-500 hover:bg-orange-600"
                   onClick={handleFormPeminjaman}
                 >
                   Pinjam
@@ -299,7 +306,7 @@ export default function PageBeranda() {
           {/* Modal Form Peminjaman */}
           {modalFormPeminjaman && (
             <Modal title="Formulir Peminjaman" onCloseModal={handleCloseForm}>
-              <form action="" className="my-3" onSubmit={handleSubmitForm}>
+              <form className="my-3" onSubmit={handleSubmitForm}>
                 <table className="table">
                   <tbody>
                     <tr>
@@ -331,7 +338,7 @@ export default function PageBeranda() {
                       Tanggal Mulai
                     </span>
                     <input
-                      type="date"
+                      type="datetime-local"
                       placeholder="Tanggal Mulai"
                       className="input input-bordered input-md w-full focus:outline focus:outline-orange-300"
                       required
@@ -345,7 +352,7 @@ export default function PageBeranda() {
                       Tanggal Selesai
                     </span>
                     <input
-                      type="date"
+                      type="datetime-local"
                       placeholder="Tanggal Selesai"
                       className="input input-bordered input-md w-full focus:outline focus:outline-orange-300"
                       required
@@ -359,10 +366,10 @@ export default function PageBeranda() {
                   <span className="mb-1 text-sm lg:text-base">Keperluan</span>
                   <textarea
                     className="textarea textarea-bordered h-24"
-                    placeholder="Isi alasan keperluan"
+                    placeholder="Isi keperluan"
                     required
-                    value={pinjamAlasan}
-                    onChange={(e) => setPinjamAlasan(e.target.value)}
+                    value={pinjamKeperluan}
+                    onChange={(e) => setPinjamKeperluan(e.target.value)}
                   ></textarea>
                 </label>
 
@@ -381,12 +388,12 @@ export default function PageBeranda() {
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
               {filteredAsets.map((aset) => (
                 <CardBeranda
-                  key={aset.id_beranda}
-                  cardId={aset.id_aset}
+                  key={aset.id}
                   fotoAset={aset.gambar}
                   namaAset={aset.nama}
                   unitAset={aset.unit}
-                  statusAset={aset.stok}
+                  kategoriAset={aset.kategori}
+                  statusAset={aset.status_aset}
                   onCardClick={() => handleCardClick(aset)}
                 ></CardBeranda>
               ))}

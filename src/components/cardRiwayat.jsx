@@ -1,4 +1,6 @@
+import { BiCategoryAlt } from "react-icons/bi";
 import { CiImageOff } from "react-icons/ci";
+import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 
 export default function CardRiwayat(props) {
   const {
@@ -6,6 +8,7 @@ export default function CardRiwayat(props) {
     fotoAset,
     namaAset,
     unitAset,
+    kategoriAset,
     statusAset,
     tglMulai,
     tglSelesai,
@@ -30,10 +33,10 @@ export default function CardRiwayat(props) {
         )}
         <div>
           <div
-            className={`badge badge-outline ${
+            className={`badge badge-outline mb-1 ${
               statusAset == "Menunggu Konfirmasi"
                 ? "badge-primary"
-                : statusAset == "Sedang Dipinjam"
+                : statusAset == "Disetujui"
                 ? "badge-info"
                 : statusAset == "Jatuh Tempo"
                 ? "badge-secondary"
@@ -43,15 +46,23 @@ export default function CardRiwayat(props) {
                 ? "badge-error"
                 : statusAset == "Ditolak"
                 ? "badge-error"
+                : statusAset == "Bermasalah"
+                ? "badge-error"
                 : "badge-neutral"
             } `}
           >
             {statusAset}
           </div>
           <h3 className="mb-2 text-base font-semibold">{namaAset}</h3>
-          <div className="flex items-center gap-1 mb-2">
-            <img src="icon/gedung.svg" alt="icon" />
-            <p className="text-sm">{unitAset}</p>
+          <div className="flex gap-3">
+            <div className="flex items-center gap-1 mb-2">
+              <HiOutlineBuildingOffice2 className="text-orange-500" />
+              <p className="text-sm">{unitAset}</p>
+            </div>
+            <div className="flex items-center gap-1 mb-2">
+              <BiCategoryAlt className="text-orange-500" />
+              <p className="text-sm">{kategoriAset}</p>
+            </div>
           </div>
           <p className="text-sm text-gray-500">
             {tglMulai} - {tglSelesai}

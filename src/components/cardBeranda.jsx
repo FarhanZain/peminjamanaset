@@ -1,8 +1,9 @@
 import { CiImageOff } from "react-icons/ci";
 import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
+import { BiCategoryAlt } from "react-icons/bi";
 
 export default function CardBeranda(props) {
-  const { fotoAset, namaAset, unitAset, statusAset, onCardClick } = props;
+  const { fotoAset, namaAset, unitAset, kategoriAset, statusAset, onCardClick } = props;
 
   return (
     <>
@@ -24,9 +25,15 @@ export default function CardBeranda(props) {
         )}
         <div>
           <h3 className="text-base font-semibold mb-2">{namaAset}</h3>
-          <div className="flex gap-1 items-center mb-2">
-            <HiOutlineBuildingOffice2 className="text-orange-500" />
-            <p className="text-sm">{unitAset}</p>
+          <div className="flex gap-3">
+            <div className="flex gap-1 items-center mb-2">
+              <HiOutlineBuildingOffice2 className="text-orange-500" />
+              <p className="text-sm">{unitAset}</p>
+            </div>
+            <div className="flex gap-1 items-center mb-2">
+              <BiCategoryAlt className="text-orange-500" />
+              <p className="text-sm">{kategoriAset}</p>
+            </div>
           </div>
           <div
             className={`badge badge-outline ${

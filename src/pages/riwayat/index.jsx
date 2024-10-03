@@ -11,14 +11,13 @@ import { useRouter } from "next/router";
 import { BsFolderX } from "react-icons/bs";
 import { CiImageOff } from "react-icons/ci";
 import ModalLoading from "@/components/modalLoading";
+import { BiCategoryAlt } from "react-icons/bi";
 
 export default function PageRiwayat() {
   const [activeModalId, setActiveModalId] = useState(null);
   const [loadingModal, setLoadingModal] = useState(false);
 
-  const today = new Date().toLocaleDateString("sv-SE", {
-    timeZone: "Asia/Jakarta",
-  });
+  const today = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }).replace(' ', 'T').slice(0, 16)
 
   const formatTanggal = (tanggal) => {
     const format = new Date(tanggal).toLocaleDateString("id-ID", {
@@ -26,13 +25,15 @@ export default function PageRiwayat() {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, 
     });
     return format;
   };
 
   // Modal Detail
   const [idRiwayat, setIdRiwayat] = useState(null);
-  const [idAset, setIdAset] = useState(null);
   const [unitAset, setUnitAset] = useState(null);
   const [tglPengembalian, setTglPengembalian] = useState(null);
   //
@@ -42,7 +43,6 @@ export default function PageRiwayat() {
   const handleClickCard = (aset) => {
     setActiveModalId(aset);
     setIdRiwayat(aset.id_riwayat);
-    setIdAset(aset.id_aset);
     setUnitAset(aset.unit);
     setTglPengembalian(today);
     //
@@ -77,7 +77,6 @@ export default function PageRiwayat() {
             },
             body: JSON.stringify({
               idRiwayat,
-              idAset,
               unitAset,
               tglPengembalian,
             }),
@@ -171,7 +170,6 @@ export default function PageRiwayat() {
             },
             body: JSON.stringify({
               idRiwayat,
-              idAset,
               unitAset,
             }),
           });
@@ -357,27 +355,28 @@ export default function PageRiwayat() {
                   loading="lazy"
                 />
               )}
-              <h3 className="text-xl font-bold mb-3">{activeModalId.nama}</h3>
-              <div
-                className={`badge badge-outline mb-4 ${
-                  activeModalId.status == "Menunggu Konfirmasi"
-                    ? "badge-primary"
-                    : activeModalId.status == "Sedang Dipinjam"
-                    ? "badge-info"
-                    : activeModalId.status == "Jatuh Tempo"
-                    ? "badge-secondary"
-                    : activeModalId.status == "Selesai"
-                    ? "badge-success"
-                    : activeModalId.status == "Dibatalkan"
-                    ? "badge-error"
-                    : activeModalId.status == "Ditolak"
-                    ? "badge-error"
-                    : "badge-neutral"
-                }`}
-              >
-                {activeModalId.status}
-              </div>
-              <div className="flex flex-wrap gap-4">
+              <h3 className="text-xl font-bold mb-1">{activeModalId.nama}</h3>
+              <p className="mb-2 text-sm">{activeModalId.detail}</p>
+              <div className="flex flex-wrap gap-x-4">
+                <div
+                  className={`badge badge-outline mb-3 ${
+                    activeModalId.status_pinjam == "Menunggu Konfirmasi"
+                      ? "badge-primary"
+                      : activeModalId.status_pinjam == "Disetujui"
+                      ? "badge-info"
+                      : activeModalId.status_pinjam == "Jatuh Tempo"
+                      ? "badge-secondary"
+                      : activeModalId.status_pinjam == "Selesai"
+                      ? "badge-success"
+                      : activeModalId.status_pinjam == "Dibatalkan"
+                      ? "badge-error"
+                      : activeModalId.status_pinjam == "Ditolak"
+                      ? "badge-error"
+                      : "badge-neutral"
+                  }`}
+                >
+                  {activeModalId.status_pinjam}
+                </div>
                 <div className="flex gap-1 items-center mb-3">
                   <MdNumbers className="text-orange-500" />
                   <p className="text-sm">{activeModalId.no_aset}</p>
@@ -387,50 +386,54 @@ export default function PageRiwayat() {
                   <p className="text-sm">{activeModalId.unit}</p>
                 </div>
                 <div className="flex gap-1 items-center mb-3">
+                  <BiCategoryAlt className="text-orange-500" />
+                  <p className="text-sm">{activeModalId.kategori}</p>
+                </div>
+                <div className="flex gap-1 items-center mb-3">
                   <HiOutlineLocationMarker className="text-orange-500" />
                   <p className="text-sm">{activeModalId.lokasi}</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-sm md:text-base font-semibold">
-                  Alasan Meminjam
+                <p className="text-sm font-semibold">
+                  Keperluan Meminjam
                 </p>
-                <p className="text-sm md:text-base mt-2">
-                  {activeModalId.alasan}
+                <p className="text-sm mt-2">
+                  {activeModalId.keperluan}
                 </p>
               </div>
               <div className="mt-4">
-                <p className="text-sm md:text-base font-semibold">
+                <p className="text-sm font-semibold">
                   Masa Pinjam
                 </p>
-                <p className="text-sm md:text-base mt-2">
+                <p className="text-sm mt-2">
                   {formatTanggal(activeModalId.tgl_mulai)} -{" "}
                   {formatTanggal(activeModalId.tgl_selesai)}
                 </p>
               </div>
               <div className="flex justify-between mt-2">
                 <div className="mt-2">
-                  <p className="text-sm md:text-base font-semibold">
+                  <p className="text-sm font-semibold">
                     Tanggal Pengajuan
                   </p>
-                  <p className="text-sm md:text-base mt-2">
+                  <p className="text-sm mt-2">
                     {activeModalId.tgl_pengajuan == null
                       ? "-"
                       : formatTanggal(activeModalId.tgl_pengajuan)}
                   </p>
                 </div>
                 <div className="mt-2">
-                  <p className="text-sm md:text-base font-semibold">
+                  <p className="text-sm font-semibold">
                     Tanggal Pengembalian
                   </p>
-                  <p className="text-sm md:text-base mt-2">
+                  <p className="text-sm mt-2">
                     {activeModalId.tgl_pengembalian == null
                       ? "-"
                       : formatTanggal(activeModalId.tgl_pengembalian)}
                   </p>
                 </div>
               </div>
-              {activeModalId.status == "Menunggu Konfirmasi" ? (
+              {activeModalId.status_pinjam == "Menunggu Konfirmasi" ? (
                 <button
                   type="button"
                   className="btn btn-outline w-full text-orange-500 border-orange-500 hover:bg-orange-600 hover:border-orange-500 mt-8"
@@ -438,7 +441,7 @@ export default function PageRiwayat() {
                 >
                   Batalkan
                 </button>
-              ) : activeModalId.status == "Sedang Dipinjam" ? (
+              ) : activeModalId.status_pinjam == "Disetujui" ? (
                 <button
                   type="button"
                   className="btn btn-outline w-full text-white bg-orange-500 hover:bg-orange-600 mt-8"
@@ -446,7 +449,7 @@ export default function PageRiwayat() {
                 >
                   Kembalikan
                 </button>
-              ) : activeModalId.status == "Jatuh Tempo" ? (
+              ) : activeModalId.status_pinjam == "Jatuh Tempo" ? (
                 <button
                   type="button"
                   className="btn btn-outline w-full text-white bg-orange-500 hover:bg-orange-600 mt-8"
@@ -469,7 +472,8 @@ export default function PageRiwayat() {
                   fotoAset={aset.gambar}
                   namaAset={aset.nama}
                   unitAset={aset.unit}
-                  statusAset={aset.status}
+                  kategoriAset={aset.kategori}
+                  statusAset={aset.status_pinjam}
                   tglMulai={formatTanggal(aset.tgl_mulai)}
                   tglSelesai={formatTanggal(aset.tgl_selesai)}
                   onCardClick={() => handleClickCard(aset)}
