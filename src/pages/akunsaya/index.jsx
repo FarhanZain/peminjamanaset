@@ -52,6 +52,7 @@ export default function PageAkunSaya() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               updatedId: users.id,
@@ -144,6 +145,7 @@ export default function PageAkunSaya() {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
+                "apikey": process.env.NEXT_PUBLIC_API_KEY,
               },
               body: JSON.stringify({
                 updatedId: users.id,
@@ -248,16 +250,20 @@ export default function PageAkunSaya() {
     }
   }, [tokenCookie]);
 
-  const fetchData = () => {
-    fetch("/api/akunKaryawan")
-      .then((response) => response.json())
-      .then((data) => {
-        const filteredData = data.find((user) => user.id === tokenCookie.id);
-        setUsers(filteredData);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/akunKaryawan", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      const filteredData = data.find((user) => user.id === tokenCookie.id);
+      setUsers(filteredData);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   return (

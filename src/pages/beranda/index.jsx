@@ -116,6 +116,7 @@ export default function PageBeranda() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({
           pinjamIdAset,
@@ -215,49 +216,58 @@ export default function PageBeranda() {
     checkAuth();
   }, [router]);
 
-  // fetch data diri
-  const [users, setUsers] = useState({});
-  useEffect(() => {
-    // Fetch data dari API route
-    fetch("/api/akunKaryawan")
-      .then((response) => response.json())
-      .then((data) => {
-        const filteredData = data.find((user) => user.id === tokenCookie.id);
-        setUsers(filteredData);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, []);
-
-  // fetch data aset
+  // fetch data
   const [asets, setAsets] = useState([]);
   const [rentangWaktu, setRentangWaktu] = useState([]);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
     fetchData();
+    fetchDataUser();
     fetchDataRiwayat();
   }, []);
-  const fetchData = () => {
-    fetch("/api/beranda")
-      .then((response) => response.json())
-      .then((data) => {
-        setAsets(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/beranda", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setAsets(data);
+    } catch (error) {
+      setError(error);
+    }
   };
-  const fetchDataRiwayat = () => {
-    fetch("/api/rentangWaktu")
-      .then((response) => response.json())
-      .then((data) => {
-        const dataRentang = data.filter((rentang) => rentang.id_aset === idAset && (rentang.status_pinjam === "Menunggu Konfirmasi" || rentang.status_pinjam === "Disetujui"));
-        setRentangWaktu(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchDataUser = async () => {
+    try {
+      const res = await fetch("/api/akunKaryawan", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      const filteredData = data.find((user) => user.id === tokenCookie.id);
+      setUsers(filteredData);
+    } catch (error) {
+      setError(error);
+    }
+  };
+  const fetchDataRiwayat = async () => {
+    try {
+      const res = await fetch("/api/rentangWaktu", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
+      const data = await res.json();
+      setRentangWaktu(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Search

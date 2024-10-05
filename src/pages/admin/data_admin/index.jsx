@@ -103,25 +103,33 @@ export default function AdminDataAdmin() {
     fetchData();
     fetchDataUnit();
   }, []);
-  const fetchData = () => {
-    fetch("/api/admin")
-      .then((response) => response.json())
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/admin", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setUsers(data);
+    } catch (error) {
+      setError(error);
+    }
   };
-  const fetchDataUnit = () => {
-    fetch("/api/unit")
-      .then((response) => response.json())
-      .then((data) => {
-        setUnits(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchDataUnit = async () => {
+    try {
+      const res = await fetch("/api/unit", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setUnits(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Tambah Admin & Superadmin
@@ -158,6 +166,7 @@ export default function AdminDataAdmin() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({ levelAdmin, usernameAdmin, waAdmin, unitAdmin }),
       });
@@ -246,6 +255,7 @@ export default function AdminDataAdmin() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               updatedId: editStatus.id,
@@ -309,6 +319,7 @@ export default function AdminDataAdmin() {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({ deletedId: row.id }),
           });

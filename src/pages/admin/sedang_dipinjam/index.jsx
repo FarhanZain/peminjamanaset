@@ -108,15 +108,19 @@ export default function AdminSedangDipinjam() {
   useEffect(() => {
     fetchData();
   }, []);
-  const fetchData = () => {
-    fetch("/api/sedangPinjam")
-      .then((response) => response.json())
-      .then((data) => {
-        setPinjams(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/sedangPinjam", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setPinjams(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Search

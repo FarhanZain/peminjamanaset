@@ -4,7 +4,14 @@ import jwt from 'jsonwebtoken';
 import { serialize } from 'cookie';
 
 export default async function handler(req, res) {
+    const apiKey = req.headers['apikey'];
+    const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
+
     if (req.method === 'POST') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
+        
         const { username, password } = req.body;
 
         try {

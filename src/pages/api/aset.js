@@ -39,8 +39,14 @@ export const config = {
 export default async function handler(req, res) {
     const token = req.cookies.auth;
     const decoded = jwt.verify(token, '!iniTokenRAHASIApeminjaman@set?');
+
+    const apiKey = req.headers['apikey'];
+    const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
     
     if (req.method == 'GET') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         try {
             if (decoded.unit) {
                 const [rows] = await db.query('SELECT a.*, un.id AS id_units, un.unit, k.id AS id_kategoris, k.kategori FROM tbl_aset a JOIN tbl_unit un ON a.id_unit = un.id JOIN tbl_kategori k ON a.id_kategori = k.id WHERE un.unit = ?', [decoded.unit]);
@@ -53,6 +59,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Error fetching users' });
         }
     }else if (req.method == 'POST') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         uploadMiddleware(req, res, async () => {
             const { nomorAset, namaAset, unitAset, lokasiAset, kategoriAset, detailAset } = req.body;
             const gambarAset = req.file ? `/image/${req.file.filename}` : null;
@@ -68,6 +77,9 @@ export default async function handler(req, res) {
             }
         });
     }else if (req.method == 'DELETE') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         deleteMiddleware(req, res, async () => {
             const { deletedId } = req.body;
             try {
@@ -88,6 +100,9 @@ export default async function handler(req, res) {
             }
         });
     }else if (req.method == 'PUT') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         updateMiddleware(req, res, async () => {
             const { updatedId, updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedKategori, updatedDetail } = req.body;
             const updatedGambar = req.file ? `/image/${req.file.filename}` : null;
@@ -113,6 +128,9 @@ export default async function handler(req, res) {
             }
         });
     }else if (req.method == 'PATCH') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         patchMiddleware(req, res, async () => {
             const { updatedId, updatedStatus } = req.body;
             try {

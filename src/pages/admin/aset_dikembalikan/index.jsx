@@ -125,15 +125,19 @@ export default function AdminKonfirmasi() {
   useEffect(() => {
     fetchData();
   }, []);
-  const fetchData = () => {
-    fetch("/api/dikembalikan")
-      .then((response) => response.json())
-      .then((data) => {
-        setPinjams(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/dikembalikan", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setPinjams(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Search
@@ -176,6 +180,7 @@ export default function AdminKonfirmasi() {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               idRiwayat: row.id,
@@ -241,6 +246,7 @@ export default function AdminKonfirmasi() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({
           idMasalah,

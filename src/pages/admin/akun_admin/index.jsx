@@ -41,16 +41,20 @@ export default function AdminKonfirmasi() {
       fetchData();
     }
   }, [tokenCookie]);
-  const fetchData = () => {
-    fetch("/api/akunAdmin")
-      .then((response) => response.json())
-      .then((data) => {
-        const filteredData = data.find((user) => user.id === tokenCookie.id);
-        setUsers(filteredData);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/akunAdmin", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      const filteredData = data.find((user) => user.id === tokenCookie.id);
+      setUsers(filteredData);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Ubah Profil
@@ -87,6 +91,7 @@ export default function AdminKonfirmasi() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               updatedId: users.id,
@@ -177,6 +182,7 @@ export default function AdminKonfirmasi() {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
+                "apikey": process.env.NEXT_PUBLIC_API_KEY,
               },
               body: JSON.stringify({
                 updatedId: users.id,

@@ -2,7 +2,13 @@ import db from '../../lib/db';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
+    const apiKey = req.headers['apikey'];
+    const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
+    
     if (req.method === 'GET') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         try {
             const [rows] = await db.query('SELECT id, username, nama_lengkap, alamat, no_wa, status FROM tbl_user WHERE role = "karyawan"');
             res.status(200).json(rows);
@@ -10,6 +16,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Error fetching users' });
         }
     }else if (req.method === 'POST') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         const { namaKaryawan, alamatKaryawan, waKaryawan } = req.body;
         const templatePassword = "karyawanYUAB";
         const passwordKaryawan = await bcrypt.hash(templatePassword, 10);
@@ -33,6 +42,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Gagal menambahkan karyawan' });
         }
     }else if (req.method === 'DELETE') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         const { deletedId } = req.body;
         try {
             await db.query('DELETE FROM tbl_user WHERE id = ?', [deletedId]);
@@ -41,6 +53,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Gagal menghapus karyawan' });
         }
     }else if (req.method === 'PUT') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         const { updatedId, updatedStatus } = req.body;
         try {
             await db.query('UPDATE tbl_user SET status = ? WHERE tbl_user.id = ?', [updatedStatus, updatedId]);

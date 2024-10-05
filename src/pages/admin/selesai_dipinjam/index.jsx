@@ -116,15 +116,22 @@ export default function AdminSelesaiDipinjam() {
   const [pinjams, setPinjams] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    fetch("/api/selesaiPinjam")
-      .then((response) => response.json())
-      .then((data) => {
-        setPinjams(data);
-      })
-      .catch((err) => {
-        setError(err);
-      });
+    fetchData();
   }, []);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/selesaiPinjam", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
+      const data = await res.json();
+      setPinjams(data);
+    } catch (error) {
+      setError(error);
+    }
+  };
 
   // Search
   const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian

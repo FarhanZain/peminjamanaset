@@ -5,7 +5,13 @@ export default async function handler(req, res) {
     const token = req.cookies.auth;
     const decoded = jwt.verify(token, '!iniTokenRAHASIApeminjaman@set?');
 
+    const apiKey = req.headers['apikey'];
+    const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
+
     if (req.method == 'GET') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         try {
             if (decoded.unit) {
                 const [rows] = await db.query('SELECT r.*, a.id AS id_asets, a.nama, un.id AS id_units, un.unit, u.id AS id_users, u.nama_lengkap, u.no_wa FROM tbl_riwayat r JOIN tbl_aset a ON r.id_aset = a.id JOIN tbl_unit un ON a.id_unit = un.id JOIN tbl_user u ON r.id_user = u.id WHERE r.status_pinjam = ? AND un.unit = ? ORDER BY r.tgl_pengajuan ASC', ['Dikembalikan', decoded.unit]);
@@ -18,6 +24,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Gagal fetching data' });
         }
     }else if (req.method == 'PATCH') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         const { idRiwayat } = req.body;
         try {
             await db.query('UPDATE tbl_riwayat SET status_pinjam = ? WHERE tbl_riwayat.id = ?', ["Selesai", idRiwayat]);
@@ -27,6 +36,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Gagal menyelesaikan peminjaman aset' });
         }
     }else if (req.method == 'PUT') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         const { idMasalah, textCatatan, idUser } = req.body;
         try {
             await db.query('UPDATE tbl_riwayat SET status_pinjam = ?, catatan = ? WHERE tbl_riwayat.id = ?', ["Bermasalah", textCatatan, idMasalah]);

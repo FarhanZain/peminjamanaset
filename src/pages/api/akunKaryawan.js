@@ -1,7 +1,13 @@
 import db from '../../lib/db';
 
 export default async function handler(req, res) {
+    const apiKey = req.headers['apikey'];
+    const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
+
     if (req.method == 'GET') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         try {
             const [rows] = await db.query('SELECT id, username, no_wa, role, nama_lengkap, alamat FROM tbl_user WHERE role = "karyawan"');
             res.status(200).json(rows);
@@ -9,6 +15,9 @@ export default async function handler(req, res) {
             res.status(500).json({ error: 'Error fetching users' });
         }
     }else if (req.method == 'PUT') {
+        if (apiKey !== envApiKey) {
+            return res.status(403).json({ error: 'Akses ditolak !' });
+        }
         const { updatedId, updatedUsername, updatedWa, updatedNama, updatedAlamat } = req.body;
         try {
             const [checkDuplicate] = await db.query('SELECT username FROM tbl_user WHERE username = ?', [updatedUsername]);

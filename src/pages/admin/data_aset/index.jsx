@@ -130,6 +130,7 @@ export default function AdminDataAset() {
 
   // fetch data aset
   const [asets, setAsets] = useState([]);
+  const [units, setUnits] = useState([]);
   const [kategoris, setKategoris] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -137,35 +138,47 @@ export default function AdminDataAset() {
     fetchDataUnit();
     fetchDataKategori();
   }, []);
-  const fetchData = () => {
-    fetch("/api/aset")
-      .then((response) => response.json())
-      .then((data) => {
-          setAsets(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/aset", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setAsets(data);
+    } catch (error) {
+      setError(error);
+    }
   };
-  const fetchDataUnit = () => {
-    fetch("/api/unit")
-      .then((response) => response.json())
-      .then((data) => {
-        setUnits(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchDataUnit = async () => {
+    try {
+      const res = await fetch("/api/unit", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setUnits(data);
+    } catch (error) {
+      setError(error);
+    }
   };
-  const fetchDataKategori = () => {
-    fetch("/api/kategori")
-      .then((response) => response.json())
-      .then((data) => {
-        setKategoris(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchDataKategori = async () => {
+    try {
+      const res = await fetch("/api/kategori", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setKategoris(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Search
@@ -208,6 +221,9 @@ export default function AdminDataAset() {
           setLoadingModal(true);
           const res = await fetch("/api/aset", {
             method: "DELETE",
+            headers: {
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
+            },
             body: formData,
           });
           const result = await res.json();
@@ -351,6 +367,9 @@ export default function AdminDataAset() {
 
       const res = await fetch("/api/aset", {
         method: "POST",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
         body: formData,
       });
       const result = await res.json();
@@ -472,6 +491,9 @@ export default function AdminDataAset() {
 
           const res = await fetch("/api/aset", {
             method: "PUT",
+            headers: {
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
+            },
             body: formData,
           });
           const result = await res.json();
@@ -551,6 +573,9 @@ export default function AdminDataAset() {
 
           const res = await fetch("/api/aset", {
             method: "PATCH",
+            headers: {
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
+            },
             body: formData,
           });
           const result = await res.json();

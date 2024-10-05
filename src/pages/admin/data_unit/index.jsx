@@ -72,15 +72,19 @@ export default function AdminDataUnit() {
   useEffect(() => {
     fetchDataUnit();
   }, []);
-  const fetchDataUnit = () => {
-    fetch("/api/unit")
-      .then((response) => response.json())
-      .then((data) => {
-        setUnits(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchDataUnit = async () => {
+    try {
+      const res = await fetch("/api/unit", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setUnits(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Tambah Unit
@@ -103,6 +107,7 @@ export default function AdminDataUnit() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({ textUnit }),
       });
@@ -172,6 +177,7 @@ export default function AdminDataUnit() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               updatedId: editUnit.id,
@@ -235,6 +241,7 @@ export default function AdminDataUnit() {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({ deletedId: row.id }),
           });

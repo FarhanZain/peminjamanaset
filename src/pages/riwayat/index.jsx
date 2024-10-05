@@ -74,6 +74,7 @@ export default function PageRiwayat() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               idRiwayat,
@@ -167,6 +168,7 @@ export default function PageRiwayat() {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               idRiwayat,
@@ -257,37 +259,43 @@ export default function PageRiwayat() {
 
     checkAuth();
   }, [router]);
-
-  // fetch data diri
-  const [users, setUsers] = useState({});
-  useEffect(() => {
-    // Fetch data dari API route
-    fetch("/api/akunKaryawan")
-      .then((response) => response.json())
-      .then((data) => {
-        const filteredData = data.find((user) => user.id === tokenCookie.id);
-        setUsers(filteredData);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, []);
-
-  // fetch data aset
+  
+  // fetch data
   const [asets, setAsets] = useState([]);
+  const [users, setUsers] = useState({});
   const [error, setError] = useState(null);
   useEffect(() => {
     fetchData();
+    fetchDataUser();
   }, []);
-  const fetchData = () => {
-    fetch("/api/riwayat")
-      .then((response) => response.json())
-      .then((data) => {
-        setAsets(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/riwayat", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setAsets(data);
+    } catch (error) {
+      setError(error);
+    }
+  };
+  const fetchDataUser = async () => {
+    try {
+      const res = await fetch("/api/akunKaryawan", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
+      const data = await res.json();
+      const filteredData = data.find((user) => user.id === tokenCookie.id);
+      setUsers(filteredData);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Search

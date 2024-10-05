@@ -11,8 +11,6 @@ import { TiPlus } from "react-icons/ti";
 import Swal from "sweetalert2";
 
 export default function AdminDataKaryawan() {
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState(null);
   const [loadingModal, setLoadingModal] = useState(false);
 
   const customStyles = {
@@ -98,18 +96,24 @@ export default function AdminDataKaryawan() {
   ];
 
   // Fetch Data Karyawan
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
   useEffect(() => {
     fetchData();
   }, []);
-  const fetchData = () => {
-    fetch("/api/karyawan")
-      .then((response) => response.json())
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchData = async () => {
+    try {
+      const res = await fetch("/api/karyawan", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setUsers(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Hapus Data Karyawan
@@ -133,6 +137,7 @@ export default function AdminDataKaryawan() {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({ deletedId: row.id }),
           });
@@ -251,6 +256,7 @@ export default function AdminDataKaryawan() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({ namaKaryawan, alamatKaryawan, waKaryawan }),
       });
@@ -346,6 +352,7 @@ export default function AdminDataKaryawan() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               updatedId: editStatus.id,
@@ -549,7 +556,7 @@ export default function AdminDataKaryawan() {
               </div>
               <input
                 type="number"
-                placeholder="Masukkan nomor wa"
+                placeholder="0812XXXXXXXX"
                 className="input input-bordered w-full"
                 defaultValue={waKaryawan}
                 onChange={(e) => setWaKaryawan(e.target.value)}

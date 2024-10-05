@@ -72,15 +72,19 @@ export default function AdminDataUnit() {
   useEffect(() => {
     fetchDataKategori();
   }, []);
-  const fetchDataKategori = () => {
-    fetch("/api/kategori")
-      .then((response) => response.json())
-      .then((data) => {
-        setKategoris(data);
-      })
-      .catch((err) => {
-        setError(err);
+  const fetchDataKategori = async () => {
+    try {
+      const res = await fetch("/api/kategori", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
       });
+      const data = await res.json();
+      setKategoris(data);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   // Tambah Kategori
@@ -103,6 +107,7 @@ export default function AdminDataUnit() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
         body: JSON.stringify({ textKategori }),
       });
@@ -172,6 +177,7 @@ export default function AdminDataUnit() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({
               updatedId: editKategori.id,
@@ -235,6 +241,7 @@ export default function AdminDataUnit() {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
+              "apikey": process.env.NEXT_PUBLIC_API_KEY,
             },
             body: JSON.stringify({ deletedId: row.id }),
           });
