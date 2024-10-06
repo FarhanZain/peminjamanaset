@@ -133,11 +133,14 @@ export default function AdminDataAset() {
   const [units, setUnits] = useState([]);
   const [kategoris, setKategoris] = useState([]);
   const [error, setError] = useState(null);
+  // filter
+  const [filterKategori, setFilterKategori] = useState("");
+
   useEffect(() => {
     fetchData();
     fetchDataUnit();
     fetchDataKategori();
-  }, []);
+  }, [filterKategori]);
   const fetchData = async () => {
     try {
       const res = await fetch("/api/aset", {
@@ -147,7 +150,12 @@ export default function AdminDataAset() {
         },
       });
       const data = await res.json();
-      setAsets(data);
+      const filterData = data.filter((item) => item.kategori === filterKategori);
+      if (filterKategori) {
+        setAsets(filterData);
+      }else{
+        setAsets(data);
+      }
     } catch (error) {
       setError(error);
     }
@@ -647,16 +655,30 @@ export default function AdminDataAset() {
       <DefaultLayout>
         <h1 className="text-xl font-semibold">Data Aset</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
-          <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
-            <input
-              type="text"
-              className="grow"
-              placeholder="Search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <IoSearch />
-          </label>
+          <div className="flex gap-2">
+            <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
+              <input
+                type="text"
+                className="grow"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <IoSearch />
+            </label>
+            {/* Filter Kategori */}
+            <select className="select select-bordered w-[300px]" 
+              value={filterKategori}
+              onChange={(e) => setFilterKategori(e.target.value)}
+            >
+              <option value="">Semua Kategori</option>
+              {kategoris.map((ktgri) => (
+                <option key={ktgri.id} value={ktgri.kategori}>
+                  {ktgri.kategori}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             <button
               className="btn btn-outline border-orange-500 text-orange-500 hover:bg-orange-500 hover:border-orange-500 col-span-2 md:col-span-1"

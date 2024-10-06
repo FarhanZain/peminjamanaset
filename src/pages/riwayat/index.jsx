@@ -264,10 +264,15 @@ export default function PageRiwayat() {
   const [asets, setAsets] = useState([]);
   const [users, setUsers] = useState({});
   const [error, setError] = useState(null);
+  const [kategoris, setKategoris] = useState([]);
+  // filter
+  const [filterKategori, setFilterKategori] = useState("");
+
   useEffect(() => {
     fetchData();
     fetchDataUser();
-  }, []);
+    fetchDataKategori();
+  }, [filterKategori]);
   const fetchData = async () => {
     try {
       const res = await fetch("/api/riwayat", {
@@ -277,7 +282,12 @@ export default function PageRiwayat() {
         },
       });
       const data = await res.json();
-      setAsets(data);
+      const filterData = data.filter((item) => item.kategori === filterKategori);
+      if (filterKategori) {
+        setAsets(filterData);
+      }else{
+        setAsets(data);
+      }
     } catch (error) {
       setError(error);
     }
@@ -293,6 +303,20 @@ export default function PageRiwayat() {
       const data = await res.json();
       const filteredData = data.find((user) => user.id === tokenCookie.id);
       setUsers(filteredData);
+    } catch (error) {
+      setError(error);
+    }
+  };
+  const fetchDataKategori = async () => {
+    try {
+      const res = await fetch("/api/kategori", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
+      const data = await res.json();
+      setKategoris(data);
     } catch (error) {
       setError(error);
     }
@@ -323,9 +347,9 @@ export default function PageRiwayat() {
       <div className="container px-6 mx-auto my-20 lg:my-24 lg:px-12">
         <div>
           {/* Filter */}
-          <div className="mb-3">
+          <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3">
             {/* Input Search */}
-            <label className="flex items-center w-full gap-2 rounded-xl input input-bordered lg:mb-4">
+            <label className="flex items-center w-full gap-2 rounded-xl input input-bordered lg:mb-2">
               <input
                 type="text"
                 className="grow"
@@ -346,6 +370,18 @@ export default function PageRiwayat() {
                 />
               </svg>
             </label>
+            {/* Filter Kategori */}
+            <select className="select select-bordered w-full rounded-xl" 
+              value={filterKategori}
+              onChange={(e) => setFilterKategori(e.target.value)}
+            >
+              <option value="">Semua Kategori</option>
+              {kategoris.map((ktgri) => (
+                <option key={ktgri.id} value={ktgri.kategori}>
+                  {ktgri.kategori}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Modal Detail Aset */}

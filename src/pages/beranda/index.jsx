@@ -221,11 +221,17 @@ export default function PageBeranda() {
   const [rentangWaktu, setRentangWaktu] = useState([]);
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [kategoris, setKategoris] = useState([]);
+  // filter
+  const [filterKategori, setFilterKategori] = useState("");
+
   useEffect(() => {
     fetchData();
     fetchDataUser();
     fetchDataRiwayat();
-  }, []);
+    fetchDataKategori();
+  }, [filterKategori]);
+
   const fetchData = async () => {
     try {
       const res = await fetch("/api/beranda", {
@@ -235,7 +241,12 @@ export default function PageBeranda() {
         },
       });
       const data = await res.json();
-      setAsets(data);
+      const filterData = data.filter((item) => item.kategori === filterKategori);
+      if (filterKategori) {
+        setAsets(filterData);
+      }else{
+        setAsets(data);
+      }
     } catch (error) {
       setError(error);
     }
@@ -269,9 +280,24 @@ export default function PageBeranda() {
       setError(error);
     }
   };
+  const fetchDataKategori = async () => {
+    try {
+      const res = await fetch("/api/kategori", {
+        method: "GET",
+        headers: {
+          "apikey": process.env.NEXT_PUBLIC_API_KEY,
+        },
+      });
+      const data = await res.json();
+      setKategoris(data);
+    } catch (error) {
+      setError(error);
+    }
+  };
+  
 
   // Search
-  const [searchTerm, setSearchTerm] = useState(""); // State untuk input pencarian
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredAsets, setFilteredAsets] = useState([]);
   useEffect(() => {
     if (searchTerm.length >= 2) {
@@ -282,7 +308,7 @@ export default function PageBeranda() {
       );
       setFilteredAsets(filteredData);
     } else {
-      setFilteredAsets(asets); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+      setFilteredAsets(asets);
     }
   }, [searchTerm, asets]);
 
@@ -295,9 +321,9 @@ export default function PageBeranda() {
       <div className="container px-6 mx-auto my-20 lg:my-24 lg:px-12">
         <div>
           {/* Filter */}
-          <div className="mb-3">
+          <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3">
             {/* Input Search */}
-            <label className="flex items-center w-full gap-2 rounded-xl input input-bordered lg:mb-4">
+            <label className="flex items-center w-full gap-2 rounded-xl input input-bordered lg:mb-2">
               <input
                 type="text"
                 className="grow"
@@ -318,6 +344,18 @@ export default function PageBeranda() {
                 />
               </svg>
             </label>
+            {/* Filter Kategori */}
+            <select className="select select-bordered w-full rounded-xl" 
+              value={filterKategori}
+              onChange={(e) => setFilterKategori(e.target.value)}
+            >
+              <option value="">Semua Kategori</option>
+              {kategoris.map((ktgri) => (
+                <option key={ktgri.id} value={ktgri.kategori}>
+                  {ktgri.kategori}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Modal Detail Aset */}
