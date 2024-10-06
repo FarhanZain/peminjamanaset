@@ -199,8 +199,8 @@ export default function AdminSedangDipinjam() {
       </Head>
       <DefaultLayout>
         <h1 className="text-xl font-semibold">Aset Sedang Dipinjam</h1>
-        <div className="flex justify-between mt-4">
-          <label className="input input-bordered flex items-center gap-2 w-[300px]">
+        <div className="flex flex-col lg:flex-row justify-between mt-4">
+          <label className="input input-bordered flex items-center gap-2 w-full lg:w-[300px] mb-2 lg:mb-0">
             <input
               type="text"
               className="grow"

@@ -265,35 +265,35 @@ export default function AdminKonfirmasi() {
         });
         fetchData();
         setFormCatatan(false)
-        // result.forEach(async (target) => {
-        //   try {
-        //     const data = new FormData();
-        //     data.append("target", `0${target.no_wa}`);
-        //     data.append(
-        //       "message",
-        //       `Halo ${target.nama_lengkap}, pengembalian aset ${namaAset} yang dipinjam *_Terjadi Masalah_*, Segera hubungi atau temui pihak unit admin terkait. Berikut catatan masalah dari admin : ${textCatatan}.`
-        //     );
-        //     data.append("delay", "0");
-        //     data.append("countryCode", "62");
+        result.forEach(async (target) => {
+          try {
+            const data = new FormData();
+            data.append("target", `0${target.no_wa}`);
+            data.append(
+              "message",
+              `Halo ${target.nama_lengkap}, pengembalian aset ${namaAset} yang dipinjam *_Terjadi Masalah_*, Segera hubungi atau temui pihak unit admin terkait. Berikut catatan masalah dari admin : ${textCatatan}.`
+            );
+            data.append("delay", "0");
+            data.append("countryCode", "62");
 
-        //     const resWa = await fetch("https://api.fonnte.com/send", {
-        //       method: "POST",
-        //       mode: "cors",
-        //       headers: new Headers({
-        //         Authorization: "pVHcLp66otGgrACBuCWm",
-        //       }),
-        //       body: data,
-        //     });
-        //     const waResult = await resWa.json();
-        //     if (waResult.status) {
-        //       console.log(`Pesan berhasil dikirim ke Admin`);
-        //     } else {
-        //       console.log(`Gagal mengirim pesan ke Admin`);
-        //     }
-        //   } catch (error) {
-        //     console.log(error);
-        //   }
-        // });
+            const resWa = await fetch("https://api.fonnte.com/send", {
+              method: "POST",
+              mode: "cors",
+              headers: new Headers({
+                Authorization: "pVHcLp66otGgrACBuCWm",
+              }),
+              body: data,
+            });
+            const waResult = await resWa.json();
+            if (waResult.status) {
+              console.log(`Pesan berhasil dikirim ke Admin`);
+            } else {
+              console.log(`Gagal mengirim pesan ke Admin`);
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        });
       } else {
         Swal.fire({
           title: "Gagal",
@@ -349,7 +349,7 @@ export default function AdminKonfirmasi() {
       </Head>
       <DefaultLayout>
         <h1 className="text-xl font-semibold">Aset Dikembalikan</h1>
-        <label className="input input-bordered flex items-center gap-2 w-[300px] mt-4">
+        <label className="input input-bordered flex items-center gap-2 w-full lg:w-[300px] mt-4">
           <input
             type="text"
             className="grow"

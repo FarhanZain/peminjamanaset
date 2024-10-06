@@ -655,7 +655,7 @@ export default function AdminDataAset() {
       <DefaultLayout>
         <h1 className="text-xl font-semibold">Data Aset</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col lg:flex-row gap-2">
             <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
               <input
                 type="text"
@@ -667,7 +667,7 @@ export default function AdminDataAset() {
               <IoSearch />
             </label>
             {/* Filter Kategori */}
-            <select className="select select-bordered w-[300px]" 
+            <select className="select select-bordered w-full lg:w-[300px]" 
               value={filterKategori}
               onChange={(e) => setFilterKategori(e.target.value)}
             >

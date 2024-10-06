@@ -35,6 +35,7 @@ export default function PageRiwayat() {
   // Modal Detail
   const [idRiwayat, setIdRiwayat] = useState(null);
   const [unitAset, setUnitAset] = useState(null);
+  const [nomorAset, setNomorAset] = useState(null);
   const [tglPengembalian, setTglPengembalian] = useState(null);
   //
   const [namaWa, setNamaWa] = useState(null);
@@ -43,7 +44,8 @@ export default function PageRiwayat() {
   const handleClickCard = (aset) => {
     setActiveModalId(aset);
     setIdRiwayat(aset.id_riwayat);
-    setUnitAset(aset.unit);
+    setUnitAset(aset.id_units);
+    setNomorAset(aset.no_aset);
     setTglPengembalian(today);
     //
     setNamaWa(users.nama_lengkap);
@@ -93,35 +95,35 @@ export default function PageRiwayat() {
             });
             fetchData();
             setActiveModalId(null);
-            // result.forEach(async (target) => {
-            //   try {
-            //     const data = new FormData();
-            //     data.append("target", `0${target.no_wa}`);
-            //     data.append(
-            //       "message",
-            //       `Halo Admin, aset ${idAset} - ${asetWa} *_telah dikembalikan_* oleh ${namaWa}. Terima kasih.`
-            //     );
-            //     data.append("delay", "0");
-            //     data.append("countryCode", "62");
+            result.forEach(async (target) => {
+              try {
+                const data = new FormData();
+                data.append("target", `0${target.no_wa}`);
+                data.append(
+                  "message",
+                  `Halo Admin, aset ${nomorAset} - ${asetWa} *_telah dikembalikan_* oleh ${namaWa}, segera konfirmasi di dashboard untuk status penyelesaian peminjaman. Terima kasih.`
+                );
+                data.append("delay", "0");
+                data.append("countryCode", "62");
 
-            //     const resWa = await fetch("https://api.fonnte.com/send", {
-            //       method: "POST",
-            //       mode: "cors",
-            //       headers: new Headers({
-            //         Authorization: "pVHcLp66otGgrACBuCWm",
-            //       }),
-            //       body: data,
-            //     });
-            //     const waResult = await resWa.json();
-            //     if (waResult.status) {
-            //       console.log(`Pesan berhasil dikirim ke Admin`);
-            //     } else {
-            //       console.log(`Gagal mengirim pesan ke Admin`);
-            //     }
-            //   } catch (error) {
-            //     console.log(error);
-            //   }
-            // });
+                const resWa = await fetch("https://api.fonnte.com/send", {
+                  method: "POST",
+                  mode: "cors",
+                  headers: new Headers({
+                    Authorization: "pVHcLp66otGgrACBuCWm",
+                  }),
+                  body: data,
+                });
+                const waResult = await resWa.json();
+                if (waResult.status) {
+                  console.log(`Pesan berhasil dikirim ke Admin`);
+                } else {
+                  console.log(`Gagal mengirim pesan ke Admin`);
+                }
+              } catch (error) {
+                console.log(error);
+              }
+            });
           } else {
             Swal.fire({
               title: "Gagal",
@@ -186,36 +188,37 @@ export default function PageRiwayat() {
             });
             fetchData();
             setActiveModalId(null);
-            // result.forEach(async (target) => {
-            //   try {
-            //     const data = new FormData();
-            //     data.append("target", `0${target.no_wa}`);
-            //     data.append(
-            //       "message",
-            //       `Halo Admin, aset ${idAset} - ${asetWa} *_Batal dipinjam_* oleh ${namaWa}. Terima kasih.`
-            //     );
-            //     data.append("delay", "0");
-            //     data.append("countryCode", "62");
+            result.forEach(async (target) => {
+              try {
+                const data = new FormData();
+                data.append("target", `0${target.no_wa}`);
+                data.append(
+                  "message",
+                  `Halo Admin, aset ${nomorAset} - ${asetWa} *_Batal dipinjam_* oleh ${namaWa}. Terima kasih.`
+                );
+                data.append("delay", "0");
+                data.append("countryCode", "62");
 
-            //     const resWa = await fetch("https://api.fonnte.com/send", {
-            //       method: "POST",
-            //       mode: "cors",
-            //       headers: new Headers({
-            //         Authorization: "pVHcLp66otGgrACBuCWm",
-            //       }),
-            //       body: data,
-            //     });
-            //     const waResult = await resWa.json();
-            //     if (waResult.status) {
-            //       console.log(`Pesan berhasil dikirim ke Admin`);
-            //     } else {
-            //       console.log(`Gagal mengirim pesan ke Admin`);
-            //     }
-            //   } catch (error) {
-            //     console.log(error);
-            //   }
-            // });
+                const resWa = await fetch("https://api.fonnte.com/send", {
+                  method: "POST",
+                  mode: "cors",
+                  headers: new Headers({
+                    Authorization: "pVHcLp66otGgrACBuCWm",
+                  }),
+                  body: data,
+                });
+                const waResult = await resWa.json();
+                if (waResult.status) {
+                  console.log(`Pesan berhasil dikirim ke Admin`);
+                } else {
+                  console.log(`Gagal mengirim pesan ke Admin`);
+                }
+              } catch (error) {
+                console.log(error);
+              }
+            });
             // console.log(result);
+            // console.log(unitAset);
           } else {
             Swal.fire({
               title: "Gagal",
