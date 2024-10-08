@@ -20,7 +20,7 @@ export default async function handler(req, res) {
         }
         const { updatedId, updatedUsername, updatedWa } = req.body;
         try {
-            const [checkDuplicate] = await db.query('SELECT username FROM tbl_user WHERE username = ?', [updatedUsername]);
+            const [checkDuplicate] = await db.query('SELECT username FROM tbl_user WHERE username = ? AND id != ?', [updatedUsername, updatedId]);
             if (checkDuplicate.length > 0) {
                 return res.status(409).json({ error: 'Username sudah digunakan' });
             }

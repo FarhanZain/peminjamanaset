@@ -41,11 +41,11 @@ export default function AdminKonfirmasi() {
 
   const columns = [
     {
-      name: "Tgl Pengembalian",
+      name: "Tgl Kembali",
       selector: (row) => formatTanggal(row.tgl_pengembalian),
       sortable: true,
       wrap: true,
-      width: "170px",
+      width: "140px",
     },
     {
       name: "Nama Aset",

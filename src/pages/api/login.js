@@ -15,7 +15,6 @@ export default async function handler(req, res) {
         const { username, password } = req.body;
 
         try {
-            // Ambil user dari database
             const [rows] = await db.query('SELECT u.*, un.id AS id_units, un.unit FROM tbl_user u LEFT JOIN tbl_unit un ON u.id_unit = un.id WHERE username = ?', [username]);
 
             if (rows.length === 0) {
@@ -24,7 +23,6 @@ export default async function handler(req, res) {
 
             const user = rows[0];
 
-            // Cek password
             const validPassword = await bcrypt.compare(password, user.password);
 
             if (!validPassword) {
@@ -32,14 +30,12 @@ export default async function handler(req, res) {
             }
 
             if (user.status === "Aktif") {
-                // Buat token JWT
                 const token = jwt.sign({ id: user.id, role: user.role, unit: user.unit }, '!iniTokenRAHASIApeminjaman@set?', { expiresIn: '30d' });
     
-                // Set cookie dengan token
                 res.setHeader('Set-Cookie', serialize('auth', token, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
-                    maxAge: 30 * 24 * 60 * 60, // 30 hari
+                    maxAge: 30 * 24 * 60 * 60,
                     path: '/'
                 }));
             }

@@ -38,14 +38,11 @@ export default function AdminSelesaiDipinjam() {
 
   const columns = [
     {
-      name: "Tgl Pengembalian",
-      selector: (row) =>
-        row.tgl_pengembalian == null
-          ? "-"
-          : formatTanggal(row.tgl_pengembalian),
+      name: "Tgl Kembali",
+      cell: (row) => <p className={`${row.status_pinjam == "Dibatalkan" ? 'text-gray-300' : row.status_pinjam == "Ditolak" ? 'text-gray-300' : 'text-black'}`}>{formatTanggal(row.tgl_pengembalian)}</p>,
       sortable: true,
       wrap: true,
-      width: "190px",
+      width: "140px",
     },
     {
       name: "Nama Aset",

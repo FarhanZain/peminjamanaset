@@ -754,7 +754,7 @@ export default function AdminDataAset() {
                 <span className="label-text">Nomor Aset</span>
               </div>
               <input
-                type="number"
+                type="text"
                 placeholder="Masukkan nomor aset"
                 className="input input-bordered w-full"
                 defaultValue={nomorAset}
@@ -884,7 +884,7 @@ export default function AdminDataAset() {
                 <span className="label-text">Nomor Aset</span>
               </div>
               <input
-                type="number"
+                type="text"
                 placeholder="Masukkan nomor aset"
                 className="input input-bordered w-full"
                 value={editNomor}

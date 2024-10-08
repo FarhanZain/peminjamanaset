@@ -2,7 +2,7 @@ import db from '../../lib/db';
 import multer from "multer";
 import { read, utils } from 'xlsx'
 
-const storage = multer.memoryStorage(); // Simpan file di memory
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 export const config = {

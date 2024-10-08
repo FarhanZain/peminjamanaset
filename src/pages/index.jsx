@@ -37,7 +37,7 @@ export default function Home() {
 
         setLoadingBtn(true);
 
-        const data = await res.json(); // Ambil body dari response API'
+        const data = await res.json();
 
         if (res.status === 200) {
           if (data.data.role === "karyawan" && data.data.status === "Aktif") {
@@ -110,29 +110,19 @@ export default function Home() {
       </Head>
       <div className="grid grid-cols-1 lg:grid-cols-2 h-screen overflow-hidden">
         <div className="hidden bg-[#FFEDD5] lg:flex justify-center items-center">
-          <Image
-            src="/image/illustration.png"
-            alt="Ilustrasi"
-            width={600}
-            height={600}
-          />
+          <img src="/image/illustration.png" alt="Ilustrasi" className="w-auto h-auto"/>
         </div>
 
         {/* Form Login */}
         <div className="flex justify-center items-center mx-6 lg:mx-0">
           <form onSubmit={handleSubmit} className="max-w-md w-full" action="">
             {/* Logo */}
-            <div className="flex justify-center mb-5">
-              <Image
-                src="/image/logo.png"
-                alt="Logo"
-                width={150}
-                height={150}
-              />
+            <div className="flex justify-center mb-6">
+              <img src="/image/logo.png" alt="logo" className="w-[150px] h-[150px]" />
             </div>
             {/* Text */}
-            <h3 className="text-xl lg:text-2xl font-bold text-center mb-5">
-              Masuk ke akun anda
+            <h3 className="text-xl lg:text-2xl font-bold text-center mb-6">
+              Peminjaman Aset Ulil Albab Batam
             </h3>
             {/* Username */}
             <label className="form-control w-full max-w-md mb-3">

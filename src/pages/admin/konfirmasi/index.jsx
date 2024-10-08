@@ -10,6 +10,7 @@ import Modal from "@/components/modal";
 
 export default function AdminKonfirmasi() {
   const [loadingModal, setLoadingModal] = useState(false);
+  const today = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }).replace(' ', 'T').slice(0, 16)
 
   const formatTanggal = (tanggal) => {
     const format = new Date(tanggal).toLocaleDateString("id-ID", {
@@ -256,16 +257,19 @@ export default function AdminKonfirmasi() {
   const [idUser, setIdUser] = useState(null);
   const [namaAset, setNamaAset] = useState(null);
   const [textCatatan, setTextCatatan] = useState(null);
+  const [tglPengembalian, setTglPengembalian] = useState(null);
 
   const handleActionTolak = (row) => {
     setFormCatatan(true)
     setIdTolak(row.id)
     setIdUser(row.id_user)
     setNamaAset(row.nama)
+    setTglPengembalian(today);
   }
   const handleCloseTolak = () => {
     setFormCatatan(false)
     setTextCatatan(null)
+    setTglPengembalian(null);
   }
   const handleSubmitCatatan = async (event) => {
     event.preventDefault();
@@ -281,6 +285,7 @@ export default function AdminKonfirmasi() {
           idTolak,
           textCatatan,
           idUser,
+          tglPengembalian
         }),
       });
       const result = await res.json();

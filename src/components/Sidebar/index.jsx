@@ -82,17 +82,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       {/* <!-- SIDEBAR HEADER --> */}
       <div className="flex items-center justify-between gap-2 px-6 py-5 lg:py-6">
         <Link href="#">
-          <Image
-            width={32}
-            height={32}
-            src={"/image/logoaja.png"}
-            alt="Logo"
-            style={{
-              width: "auto",
-              height: "auto",
-            }}
-            priority
-          />
+          <img src={"/image/logotext.png"} alt="logo" />
         </Link>
 
         <button

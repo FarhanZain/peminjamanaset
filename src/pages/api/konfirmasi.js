@@ -41,9 +41,9 @@ export default async function handler(req, res) {
         if (apiKey !== envApiKey) {
             return res.status(403).json({ error: 'Akses ditolak !' });
         }
-        const { idTolak, textCatatan, idUser } = req.body;
+        const { idTolak, textCatatan, idUser, tglPengembalian } = req.body;
         try {
-            await db.query('UPDATE tbl_riwayat SET status_pinjam = ?, catatan = ? WHERE tbl_riwayat.id = ?', ["Ditolak", textCatatan, idTolak]);
+            await db.query('UPDATE tbl_riwayat SET tgl_pengembalian = ?, status_pinjam = ?, catatan = ? WHERE tbl_riwayat.id = ?', [tglPengembalian, "Ditolak", textCatatan, idTolak]);
 
             const [nomor] = await db.query('SELECT no_wa, nama_lengkap FROM tbl_user WHERE id = ?', [idUser]);
 

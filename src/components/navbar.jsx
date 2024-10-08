@@ -24,7 +24,7 @@ export default function Navbar() {
       <nav className="w-full z-50 bg-white px-6 lg:px-12 py-4 border border-b-2 fixed bottom-0 lg:bottom-auto lg:top-0">
         <div className="flex items-center justify-between container mx-auto">
           <div className="hidden lg:block">
-            <Image src="/image/logoaja.png" alt="logo" width={35} height={35} />
+            <img src="/image/logotext.png" alt="logo" />
           </div>
           <div className="w-full lg:w-auto">
             <ul className="flex gap-6 items-center justify-between">

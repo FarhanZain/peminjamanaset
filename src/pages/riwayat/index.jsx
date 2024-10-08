@@ -151,6 +151,7 @@ export default function PageRiwayat() {
 
   // Modal Batalkan
   const handleBatalkan = () => {
+    setTglPengembalian(today);
     Swal.fire({
       title: "Apakah kamu yakin ?",
       text: `ingin membatalkan peminjaman`,
@@ -175,6 +176,7 @@ export default function PageRiwayat() {
             body: JSON.stringify({
               idRiwayat,
               unitAset,
+              tglPengembalian,
             }),
           });
           const result = await res.json();
