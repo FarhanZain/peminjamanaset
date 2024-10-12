@@ -83,6 +83,7 @@ const DropdownUser = () => {
     try {
       const res = await fetch("/api/akunAdmin", {
         method: "GET",
+        credentials: 'include',
         headers: {
           "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },

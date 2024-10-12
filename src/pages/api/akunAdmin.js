@@ -1,6 +1,12 @@
 import db from '../../lib/db';
 
 export default async function handler(req, res) {
+    const token = req.cookies.auth;
+
+    if (!token) {
+        return res.status(401).json({ message: 'JWT must be provided' });
+    }
+    
     const apiKey = req.headers['apikey'];
     const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
     

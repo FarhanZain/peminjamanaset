@@ -130,6 +130,7 @@ export default function AdminKonfirmasi() {
     try {
       const res = await fetch("/api/konfirmasi", {
         method: "GET",
+        credentials: 'include',
         headers: {
           "apikey": process.env.NEXT_PUBLIC_API_KEY,
         },
@@ -179,6 +180,7 @@ export default function AdminKonfirmasi() {
         try {
           const res = await fetch("/api/konfirmasi", {
             method: "PATCH",
+            credentials: 'include',
             headers: {
               "Content-Type": "application/json",
               "apikey": process.env.NEXT_PUBLIC_API_KEY,
@@ -277,6 +279,7 @@ export default function AdminKonfirmasi() {
     try {
       const res = await fetch("/api/konfirmasi", {
         method: "PUT",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
           "apikey": process.env.NEXT_PUBLIC_API_KEY,
