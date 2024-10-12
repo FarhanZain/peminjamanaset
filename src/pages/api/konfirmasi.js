@@ -5,9 +5,8 @@ export default async function handler(req, res) {
     const token = req.cookies.auth;
     const decoded = jwt.verify(token, '!iniTokenRAHASIApeminjaman@set?');
 
-    if (!token) {
-        return res.status(401).json({ message: 'JWT must be provided' });
-    }
+    const authHeader = req.headers.authorization;
+    const tokenCookie = authHeader.split(' ')[1];
 
     const apiKey = req.headers['apikey'];
     const envApiKey = process.env.NEXT_PUBLIC_API_KEY;
@@ -15,6 +14,12 @@ export default async function handler(req, res) {
     if (req.method == 'GET') {
         if (apiKey !== envApiKey) {
             return res.status(403).json({ error: 'Akses ditolak !' });
+        }
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Authorization header missing' });
+        }
+        if (!tokenCookie) {
+            return res.status(401).json({ message: 'Token missing' });
         }
         try {
             if (decoded.unit) {
@@ -31,6 +36,12 @@ export default async function handler(req, res) {
         if (apiKey !== envApiKey) {
             return res.status(403).json({ error: 'Akses ditolak !' });
         }
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Authorization header missing' });
+        }
+        if (!tokenCookie) {
+            return res.status(401).json({ message: 'Token missing' });
+        }
         const { idRiwayat, idUser } = req.body;
         try {
             await db.query('UPDATE tbl_riwayat SET status_pinjam = ? WHERE tbl_riwayat.id = ?', ["Disetujui", idRiwayat]);
@@ -44,6 +55,12 @@ export default async function handler(req, res) {
     }else if (req.method == 'PUT') {
         if (apiKey !== envApiKey) {
             return res.status(403).json({ error: 'Akses ditolak !' });
+        }
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Authorization header missing' });
+        }
+        if (!tokenCookie) {
+            return res.status(401).json({ message: 'Token missing' });
         }
         const { idTolak, textCatatan, idUser, tglPengembalian } = req.body;
         try {

@@ -70,6 +70,24 @@ const DropdownUser = () => {
     checkAuth();
   }, [router]);
 
+  const [authValue, setAuthValue] = useState(null); // State untuk menyimpan nilai cookie
+
+  // Ambil cookie setelah komponen di-mount di browser
+  useEffect(() => {
+    const cookies = document.cookie.split('; '); // Pisahkan cookies berdasarkan '; '
+    let value = null;
+
+    // Cari cookie dengan nama 'auth'
+    for (let cookie of cookies) {
+      if (cookie.startsWith('auth=')) {
+        value = decodeURIComponent(cookie.split('=')[1]);
+        break;
+      }
+    }
+
+    setAuthValue(value); // Simpan nilai cookie di state
+  }, []);
+
   // fetch data diri
   const [users, setUsers] = useState({});
   const [error, setError] = useState(null);
@@ -83,9 +101,9 @@ const DropdownUser = () => {
     try {
       const res = await fetch("/api/akunAdmin", {
         method: "GET",
-        credentials: 'include',
         headers: {
           "apikey": process.env.NEXT_PUBLIC_API_KEY,
+          Authorization: `Bearer ${authValue}`
         },
       });
       const data = await res.json();
