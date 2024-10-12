@@ -33,7 +33,7 @@ export default async function handler(req, res) {
                 const token = jwt.sign({ id: user.id, role: user.role, unit: user.unit }, '!iniTokenRAHASIApeminjaman@set?', { expiresIn: '30d' });
     
                 res.setHeader('Set-Cookie', serialize('auth', token, {
-                    httpOnly: false,
+                    httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     maxAge: 30 * 24 * 60 * 60,
                     path: '/'

@@ -11,23 +11,6 @@ import Modal from "@/components/modal";
 export default function AdminKonfirmasi() {
   const [loadingModal, setLoadingModal] = useState(false);
   const today = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }).replace(' ', 'T').slice(0, 16)
-  const [authValue, setAuthValue] = useState(null); // State untuk menyimpan nilai cookie
-
-  // Ambil cookie setelah komponen di-mount di browser
-  useEffect(() => {
-    const cookies = document.cookie.split('; '); // Pisahkan cookies berdasarkan '; '
-    let value = null;
-
-    // Cari cookie dengan nama 'auth'
-    for (let cookie of cookies) {
-      if (cookie.startsWith('auth=')) {
-        value = decodeURIComponent(cookie.split('=')[1]);
-        break;
-      }
-    }
-
-    setAuthValue(value); // Simpan nilai cookie di state
-  }, []);
 
   const formatTanggal = (tanggal) => {
     const format = new Date(tanggal).toLocaleDateString("id-ID", {
@@ -149,7 +132,6 @@ export default function AdminKonfirmasi() {
         method: "GET",
         headers: {
           "apikey": process.env.NEXT_PUBLIC_API_KEY,
-          Authorization: `Bearer ${authValue}`
         },
       });
       const data = await res.json();
@@ -200,7 +182,6 @@ export default function AdminKonfirmasi() {
             headers: {
               "Content-Type": "application/json",
               "apikey": process.env.NEXT_PUBLIC_API_KEY,
-              Authorization: `Bearer ${authValue}`
             },
             body: JSON.stringify({
               idRiwayat: row.id,
@@ -299,7 +280,6 @@ export default function AdminKonfirmasi() {
         headers: {
           "Content-Type": "application/json",
           "apikey": process.env.NEXT_PUBLIC_API_KEY,
-          Authorization: `Bearer ${authValue}`
         },
         body: JSON.stringify({
           idTolak,
