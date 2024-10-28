@@ -70,7 +70,7 @@ export default async function handler(req, res) {
                 if (checkDuplicate.length > 0) {
                     return res.status(409).json({ error: 'Nomor aset sudah digunakan' });
                 }
-                await db.query(`INSERT INTO tbl_aset (no_aset, nama, id_unit, lokasi, gambar, id_kategori, detail, status_aset) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [nomorAset.toUpperCase(), namaAset, unitAset, lokasiAset, gambarAset, kategoriAset, detailAset, "Tersedia"]);
+                await db.query(`INSERT INTO tbl_aset (no_aset, nama, id_unit, lokasi, gambar, id_kategori, detail, status_aset) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [nomorAset, namaAset, unitAset, lokasiAset, gambarAset, kategoriAset, detailAset, "Tersedia"]);
                 res.status(200).json({ message: "Aset berhasil ditambahkan" });
             } catch (error) {
                 res.status(500).json({ error: "Gagal menambah aset" });
@@ -123,9 +123,9 @@ export default async function handler(req, res) {
                 }
 
                 if (updatedGambar) {
-                    await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, id_unit = ?, lokasi = ?, gambar = ?, id_kategori = ?, detail = ? WHERE id = ?`, [updatedNomor.toUpperCase(), updatedNama, updatedUnit, updatedLokasi, updatedGambar, updatedKategori, updatedDetail, updatedId]);
+                    await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, id_unit = ?, lokasi = ?, gambar = ?, id_kategori = ?, detail = ? WHERE id = ?`, [updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedGambar, updatedKategori, updatedDetail, updatedId]);
                 }else{
-                    await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, id_unit = ?, lokasi = ?, id_kategori = ?, detail = ? WHERE id = ?`, [updatedNomor, updatedNama.toUpperCase(), updatedUnit, updatedLokasi, updatedKategori, updatedDetail, updatedId]);
+                    await db.query(`UPDATE tbl_aset SET no_aset = ?, nama = ?, id_unit = ?, lokasi = ?, id_kategori = ?, detail = ? WHERE id = ?`, [updatedNomor, updatedNama, updatedUnit, updatedLokasi, updatedKategori, updatedDetail, updatedId]);
                 }
                 res.status(200).json({ message: "Aset berhasil diperbarui" });
             } catch (error) {
