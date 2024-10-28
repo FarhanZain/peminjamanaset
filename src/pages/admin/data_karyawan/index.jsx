@@ -438,10 +438,10 @@ export default function AdminDataKaryawan() {
   return (
     <>
       <Head>
-        <title>Data Karyawan</title>
+        <title>Data User</title>
       </Head>
       <DefaultLayout>
-        <h1 className="text-xl font-semibold">Data Karyawan</h1>
+        <h1 className="text-xl font-semibold">Data User</h1>
         <div className="flex flex-col gap-2 md:flex-row md:justify-between mt-4">
           <label className="input input-bordered flex items-center gap-2 w-100 md:w-[300px]">
             <input
@@ -466,7 +466,7 @@ export default function AdminDataKaryawan() {
               onClick={handleAddKaryawan}
             >
               <TiPlus size={24} />
-              Karyawan
+              User
             </button>
           </div>
         </div>
@@ -485,7 +485,7 @@ export default function AdminDataKaryawan() {
       {/* Modal Import File */}
       {importKaryawan && (
         <Modal
-          title="Impor Data Karyawan"
+          title="Impor Data User"
           onCloseModal={handleCloseImportKaryawan}
         >
           <form
@@ -501,7 +501,7 @@ export default function AdminDataKaryawan() {
               required
             />
             <p className="mt-2 text-error">
-              *Masukkan file yang berisi data karyawan
+              *Masukkan file yang berisi data user
             </p>
             <div className="flex justify-between mt-8">
               <button className="btn" onClick={handleCloseImportKaryawan}>
@@ -520,7 +520,7 @@ export default function AdminDataKaryawan() {
 
       {/* Modal Add Karyawan */}
       {addKaryawan && (
-        <Modal title="Tambah Karyawan" onCloseModal={handleCloseAddKaryawan}>
+        <Modal title="Tambah User" onCloseModal={handleCloseAddKaryawan}>
           <form className="mt-4" action="" onSubmit={handleSubmitAddKaryawan}>
             {/* Nama Lengkap */}
             <label className="form-control w-full">
@@ -582,7 +582,7 @@ export default function AdminDataKaryawan() {
       {/* Modal Edit Status Karyawan */}
       {editStatus && (
         <Modal
-          title="Edit Status Karyawan"
+          title="Edit Status User"
           onCloseModal={handleCloseEditStatus}
         >
           <form className="mt-8" action="" onSubmit={handleSubmitEditStatus}>

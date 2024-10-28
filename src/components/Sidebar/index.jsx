@@ -384,7 +384,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                       <path d="M44 44H26a9 9 0 1 1 18 0" />
                     </g>
                   </svg>
-                  Data Karyawan
+                  Data User
                 </Link>
               </li>
               {/* <!-- Menu Item Data Karyawan --> */}
