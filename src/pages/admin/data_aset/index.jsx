@@ -203,7 +203,7 @@ export default function AdminDataAset() {
       );
       setFilteredAsets(filteredData);
     } else {
-      setFilteredAsets(asets); // Tampilkan semua data jika pencarian kosong atau kurang dari 2 huruf
+      setFilteredAsets(asets);
     }
   }, [searchTerm, asets]);
 
@@ -629,6 +629,7 @@ export default function AdminDataAset() {
     const checkAuth = async () => {
       const res = await fetch("/api/check-auth");
       const data = await res.json();
+      setUserUnit(data.unit)
 
       if (
         res.status !== 200 ||
@@ -1057,24 +1058,28 @@ export default function AdminDataAset() {
                 // Ambil rawValue dari objek pertama dalam array
                 const scanResult = result[0].rawValue;
 
-                const inputQR = scanResult.split(",");
+                const inputQR = scanResult.split(".");
 
                 const textNomor = inputQR[0];
                 const textNama = inputQR[1];
                 const textUnit = inputQR[2];
                 const textLokasi = inputQR[3];
+                const textKategori = inputQR[4];
+                const textDetail = inputQR[5];
 
-                if (inputQR.length === 4) {
+                if (inputQR.length === 6) {
                   setAddByQR(false);
                   setNomorAset(textNomor);
                   setNamaAset(textNama);
                   setUnitAset(textUnit);
                   setLokasiAset(textLokasi);
+                  setKategoriAset(textKategori);
+                  setDetailAset(textDetail);
                   setAddByForm(true);
                 } else {
                   Swal.fire({
                     title: "Scan Gagal",
-                    text: "QR code tidak terbaca, coba lagi.",
+                    text: "QR code tidak sesuai format, coba lagi.",
                     icon: "error",
                     showConfirmButton: false,
                     timer: 2000,
@@ -1082,10 +1087,9 @@ export default function AdminDataAset() {
                   setAddByQR(false);
                 }
               } else {
-                // Jika tidak ada rawValue atau tidak ada hasil
                 Swal.fire({
                   title: "Scan Gagal",
-                  text: "QR code tidak terbaca, coba lagi.",
+                  text: "QR code tidak sesuai format, coba lagi.",
                   icon: "error",
                   showConfirmButton: false,
                   timer: 2000,

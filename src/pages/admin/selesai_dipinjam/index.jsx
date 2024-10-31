@@ -172,12 +172,14 @@ export default function AdminSelesaiDipinjam() {
     const dataToExport = pinjams.map((pinjam) => ({
       "Tanggal Pengembalian": formatTanggal(pinjam.tgl_pengembalian),
       "Nama Aset": pinjam.nama,
+      "Unit": pinjam.unit,
       "Nama Peminjam": pinjam.nama_lengkap,
       "No Wa": pinjam.no_wa,
       "Tanggal Mulai": formatTanggal(pinjam.tgl_mulai),
       "Tanggal Selesai": formatTanggal(pinjam.tgl_selesai),
-      Alasan: pinjam.alasan,
-      Status: pinjam.status,
+      "Keperluan": pinjam.keperluan,
+      "Catatan": pinjam.catatan,
+      "Status": pinjam.status_pinjam,
     }));
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils?.json_to_sheet(dataToExport);
@@ -186,9 +188,11 @@ export default function AdminSelesaiDipinjam() {
       { wpx: 150 },
       { wpx: 150 },
       { wpx: 150 },
+      { wpx: 150 },
       { wpx: 100 },
       { wpx: 150 },
       { wpx: 150 },
+      { wpx: 200 },
       { wpx: 200 },
       { wpx: 100 },
     ];

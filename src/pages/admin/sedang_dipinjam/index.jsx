@@ -164,17 +164,19 @@ export default function AdminSedangDipinjam() {
   const handleExportFile = () => {
     const dataToExport = pinjams.map((pinjam) => ({
       "Nama Aset": pinjam.nama,
+      "Unit": pinjam.unit,
       "Nama Peminjam": pinjam.nama_lengkap,
       "No Wa": pinjam.no_wa,
       "Tanggal Mulai": formatTanggal(pinjam.tgl_mulai),
       "Tanggal Selesai": formatTanggal(pinjam.tgl_selesai),
-      Alasan: pinjam.keperluan,
-      Status: pinjam.status_pinjam,
+      "Keperluan": pinjam.keperluan,
+      "Status": pinjam.status_pinjam,
     }));
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils?.json_to_sheet(dataToExport);
     XLSX.utils.book_append_sheet(workbook, worksheet, "data sedang dipinjam");
     worksheet["!cols"] = [
+      { wpx: 150 },
       { wpx: 150 },
       { wpx: 150 },
       { wpx: 100 },
